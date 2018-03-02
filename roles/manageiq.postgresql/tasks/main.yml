@@ -48,7 +48,7 @@
     name: "{{ item }}"
     state: latest
   with_items:
-    - "{{ postgresql_scl }]-postgresql-devel"
+    - "{{ postgresql_scl }}-postgresql-devel"
     - "{{ postgresql_scl }}-postgresql-server"
 
 - name: Generate /etc/profile.d config file for PostgreSQL
