@@ -90,7 +90,7 @@
 - name: Create LVM VG for database
   lvg:
     vg: "{{ manageiq_logs_vg_name }}"
-    pvs: "{{ manageiq_logs_database_disk }}1"
+    pvs: "{{ manageiq_logs_disk }}1"
   when: vg_exists.failed
 
 - name: Check if LV exists
