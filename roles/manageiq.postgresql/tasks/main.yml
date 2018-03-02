@@ -82,15 +82,10 @@
     creates: "/var/opt/rh/{{ postgresql_scl }}/lib/pgsql/data/postgresql.conf"
 
 - name: Enable local access to PostgreSQL database
-  lineinfile:
-    name: "/var/opt/rh/{{ postgresql_scl }}/lib/pgsql/data/pg_hba.conf"
-    line: local all all trust
-
-- name: Enable local access to PostgreSQL database
   replace:
     name: "/var/opt/rh/{{ postgresql_scl }}/lib/pgsql/data/pg_hba.conf"
-    regexp: '\(^local\s*\w*\s*\w*\s*\)\(peer$\)'
-    replace: '\1trust'
+    regexp: '\s*peer$'
+    replace: '    trust'
     backup: yes
 
 - name: Enable and start PostgreSQL service
