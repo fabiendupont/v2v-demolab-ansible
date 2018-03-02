@@ -1,7 +1,7 @@
 ---
 - name: Set facts for better readability
   set_fact:
-    ruby_scl: "rh-ruby{{ manageiq_ruby_version | regex_replace('.', '') }}"
+    ruby_scl: "rh-ruby{{ manageiq_ruby_version | regex_replace('\\.', '') }}"
 
 - name: Install required packages
   yum:
