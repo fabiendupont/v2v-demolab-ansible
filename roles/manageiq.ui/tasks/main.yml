@@ -1,7 +1,7 @@
 ---
 - name: Set facts for better readability
   set_fact:
-    ruby_scl: "rh-ruby{{ manageiq.ruby.version | regex_replace('.', '') }}"
+    ruby_scl: "rh-ruby{{ manageiq_ruby_version | regex_replace('.', '') }}"
 
 - name: Install additionnal gems
   command: "scl enable {{ ruby_scl }} 'gem install foreman'"

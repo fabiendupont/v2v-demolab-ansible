@@ -13,10 +13,10 @@ Role Variables
 
 | Variable              | Mandatory | Default     | Description                                 |
 | --------------------- |:---------:|:-----------:| ------------------------------------------- |
-| manageiq.ruby.version | Yes       | 2.4         | Version of Ruby to install                  |
-| manageiq.logs.disk    | Yes       | -           | Disk on which ManageIQ stores its logs      |
-| manageiq.logs.vg_name | Yes       | vg_miq_logs | Name of the volume group created for logs   |
-| manageiq.logs.lv_name | Yes       | lv_data     | Name of the logical volume created for logs |
+| manageiq_ruby_version | Yes       | 2.4         | Version of Ruby to install                  |
+| manageiq_logs_disk    | Yes       | -           | Disk on which ManageIQ stores its logs      |
+| manageiq_logs_vg_name | Yes       | vg_miq_logs | Name of the volume group created for logs   |
+| manageiq_logs_lv_name | Yes       | lv_data     | Name of the logical volume created for logs |
 
 Dependencies
 ------------
@@ -29,7 +29,7 @@ Example Playbook
     - hosts: servers
       roles:
          - role: manageiq.postgresql
-           manageiq.logs.disk: "/dev/sdb"
+           manageiq_logs_disk: "/dev/sdb"
 
 License
 -------

@@ -13,7 +13,7 @@ Role Variables
 
 | Variable              | Mandatory | Default | Description                |
 | --------------------- |:---------:|:-------:| -------------------------- |
-| manageiq.ruby.version | Yes       | 2.4     | Version of Ruby to install |
+| manageiq_ruby_version | Yes       | 2.4     | Version of Ruby to install |
 
 Dependencies
 ------------
