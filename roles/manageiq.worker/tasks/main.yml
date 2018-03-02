@@ -1,0 +1,159 @@
+---
+- name: Set facts for better readability
+  set_fact:
+    ruby_scl: "rh-ruby{{ manageiq.ruby.version | regex_replace('.', '') }}"
+
+- name: Install required packages
+  yum:
+    name: "{{ item }}"
+    state: present
+    with_items:
+      - cmake
+      - bzip2
+      - docker
+      - gcc-c++
+      - git
+      - libcurl-devel
+      - libffi-devel
+      - libxml2-devel
+      - libxslt-devel
+      - nodejs
+      - npm
+      - openssl-devel
+      - patch
+      - readline-devel
+      - sqlite-devel
+      - "{{ ruby_scl }}-ruby"
+      - "{{ ruby_scl }}-ruby-devel"
+      - "{{ ruby_scl }}-rubygems"
+      - "{{ ruby_scl }}-rubygem-bundler"
+
+- name: Generate /etc/profile.d config file for Ruby
+  template:
+    src: etc/profile.d/scl.sh.j2
+    dest: "/etc/profile.d/{{ ruby_scl }}.sh"
+    owner: root
+    group: root
+    mode: 0755
+  vars:
+    - scl: "{{ ruby_scl }}"
+
+- name: Install node.js packages
+  npm:
+    name: "{{ item }}"
+    state: latest
+    global: yes
+  with_items:
+    - bower
+    - gulp-cli
+    - webpack
+    - yarn
+
+- name: Create docker group
+  group:
+    name: docker
+    state: present
+    system: yes
+
+- name: Start and enable docker.service
+  service:
+    name: docker
+    state: started
+    enabled: yes
+
+- name: Create miq user account
+  user:
+    name: miq
+    comment: ManageIQ Service Account
+    password: "$6$d863aJB.$3xS2Jj60nj2uyYxjb2b6t1Bc2PYEYtIZq6v7d5T0bymXxSEdYB.UieAOqTt8H2BgC14FH4BR3CIRyscfoDPXC/"
+    shell: /bin/bash
+    state: present
+    system: yes
+    groups: docker
+
+    - name: Clone ManageIQ repository
+      git:
+        repo: https://github.com/ManageIQ/manageiq.git
+        dest: /home/miq/manageiq
+        version: master
+
+    - name: Create partition on logs disk
+      command: "parted --script --align opt {{ manageiq.logs.disk }} mklabel msdos mkpart primary ext2 1 100% toggle 1 lvm"
+      args:
+        creates: "{{ manageiq.logs.disk }}1"
+
+    - name: Check if VG exists
+      command: /sbin/lvm vgs {{ manageiq.logs.vg_name }}
+      ignore_errors: true
+      register: vg_exists
+
+    - name: Create LVM VG for database
+      lvg:
+        vg: "{{ manageiq.logs.vg_name }}"
+        pvs: "{{ manageiq.logs.database_disk }}1"
+      when: vg_exists.failed
+
+    - name: Check if LV exists
+      command: /sbin/lvm lvs {{ manageiq.logs.vg_name }}/{{ manageiq.logs.lv_name }}
+      ignore_errors: true
+      register: lv_exists
+
+    - name: Create LVM LV for database
+      lvol:
+        vg: "{{ manageiq.logs.vg_name }}"
+        lv: "{{ manageiq.logs.lv_name }}"
+        size: 100%FREE
+      when: lv_exists.failed
+
+    - name: Create filesystem on LVM LV for logs
+      filesystem:
+        fstype: xfs
+        dev: "/dev/mapper/{{ manageiq.logs.vg_name }}-{{ manageiq.logs.lv_name }}"
+
+    - name: Mount logs logical volume
+      mount:
+        name: "/home/miq/manageiq/logs"
+        src: "/dev/mapper/{{ manageiq.logs.vg_name }}-{{ manageiq.logs.lv_name }}"
+        fstype: xfs
+        state: mounted
+
+    - name: Set miq user home directory ownership
+      command: chown -R miq:miq /home/miq
+      become_user: root
+
+- block:
+    - name: Install dependencies using bundler
+      command: bundle install
+      args:
+        chdir: /home/miq/manageiq
+
+    - name: Clean unused gems
+      command: bundle clean --force
+      args:
+        chdir: /home/miq/manageiq
+
+    - name: Setup ManageIQ
+      command: bin/setup
+      args:
+        chdir: /home/miq/manageiq
+
+    - name: Start ManageIQ
+      command: bundle exec rake evm:start
+      args:
+        chdir: /home/miq/manageiq
+
+  become_user: miq
+
+- name: Enable port 3000/TCP
+  firewalld:
+    port: 3000/tcp
+    state: enabled
+    permanent: yes
+    immediate: yes
+
+- name: Wait for ManageIQ service to be up
+  wait_for:
+    port: 3000
+    delay: 10
+    sleep: 10
+    timeout: 300

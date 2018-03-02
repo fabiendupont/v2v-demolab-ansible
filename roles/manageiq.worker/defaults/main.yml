@@ -1,0 +1,7 @@
+---
+manageiq:
+  ruby:
+    version: "2.4"
+  logs:
+    vg_name: "vg_miq_logs"
+    lv_name: "lv_data"

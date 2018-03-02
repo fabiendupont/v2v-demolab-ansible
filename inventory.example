@@ -1,0 +1,14 @@
+all:
+  children:
+    ManageIQ:
+      vars:
+      children:
+        database:
+          hosts:
+            miq.example.com:
+        ui:
+          hosts:
+            miq.example.com:
+        worker:
+          hosts:
+            miq.example.com:

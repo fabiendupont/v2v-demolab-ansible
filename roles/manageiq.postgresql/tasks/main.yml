@@ -1,0 +1,100 @@
+---
+- name: Set facts for better readability
+  set_fact:
+    postgresql_scl: "rh-postgresql{{ manageiq.postgresql.version | regex_replace('.', '') }}"
+
+- name: Create partition on database disk
+  command: "parted --script --align opt {{ manageiq.postgresql.database_disk }} mklabel msdos mkpart primary ext2 1 100% toggle 1 lvm"
+  args:
+    creates: "{{ manageiq.postgresql.database_disk }}1"
+
+- name: Check if VG exists
+  command: /sbin/lvm vgs {{ manageiq.postgresql.vg_name }}
+  ignore_errors: true
+  register: vg_exists
+
+- name: Create LVM VG for database
+  lvg:
+    vg: "{{ manageiq.postgresql.vg_name }}"
+    pvs: "{{ manageiq.postgresql.database_disk }}1"
+  when: vg_exists.failed
+
+- name: Check if LV exists
+  command: /sbin/lvm lvs {{ manageiq.postgresql.vg_name }}/{{ manageiq.postgresql.lv_name }}
+  ignore_errors: true
+  register: lv_exists
+
+- name: Create LVM LV for database
+  lvol:
+    vg: "{{ manageiq.postgresql.vg_name }}"
+    lv: "{{ manageiq.postgresql.lv_name }}"
+    size: 100%FREE
+  when: lv_exists.failed
+
+- name: Create filesystem on LVM LV for database
+  filesystem:
+    fstype: xfs
+    dev: "/dev/mapper/{{ manageiq.postgresql.vg_name }}-{{ manageiq.postgresql.lv_name }}"
+
+- name: Mount database logical volume
+  mount:
+    name: "/var/opt/rh/{{ postgresql_scl }}/lib/pgsql"
+    src: "/dev/mapper/{{ manageiq.postgresql.vg_name }}-{{ manageiq.postgresql.lv_name }}"
+    fstype: xfs
+    state: mounted
+
+- name: Install PostgreSQL packages
+  yum:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - "{{ postgresql_scl }]-postgresql-devel"
+    - "{{ postgresql_scl }}-postgresql-server"
+
+- name: Generate /etc/profile.d config file for PostgreSQL
+  template:
+    src: etc/profile.d/scl.sh.j2
+    dest: "/etc/profile.d/{{ postgresql_scl }}.sh"
+    owner: root
+    group: root
+    mode: 0755
+  vars:
+    - scl: "{{ postgresql_scl }}"
+
+- name: Set rights on PostgreSQL directory
+  file:
+    path: "/var/opt/rh/{{ postgresql_scl }}/lib/pgsql"
+    owner: postgres
+    group: postgres
+    mode: 0700
+    setype: var_t
+
+- name: Initialize PostgreSQL database
+  command: "scl enable {{ postgresql_scl }} 'postgresql-setup initdb'"
+  args:
+    creates: "/var/opt/rh/{{ postgresql_scl }}/lib/pgsql/data"
+
+- name: Enable local access to PostgreSQL database
+  lineinfile:
+    name: "/var/opt/rh/{{ postgresql_scl }}/lib/pgsql/data/pg_hba.conf"
+    line: local all all trust
+
+- name: Enable local access to PostgreSQL database
+  replace:
+    name: "/var/opt/rh/{{ postgresql_scl }}/lib/pgsql/data/pg_hba.conf"
+    regexp: '\(^local\s*\w*\s*\w*\s*\)\(peer$\)'
+    replace: '\1trust'
+    backup: yes
+
+- name: Enable and start PostgreSQL service
+  service:
+    name: "{{ postgresql_scl }}-postgresql"
+    state: started
+    enabled: yes
+
+- name: Create database user
+  #  command: sudo -i -u postgres scl enable {{ postgresql_scl }} "psql -c \"CREATE ROLE root SUPERUSER LOGIN PASSWORD 'smartvm'\""
+  postgresql_user:
+    name: root
+    password: "{{ manageiq.postgresql.db_password }}"
+    role_attr_flags: SUPERUSER

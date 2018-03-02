@@ -1,0 +1,70 @@
+---
+- name: Set facts for better readability
+  set_fact:
+    ruby_scl: "rh-ruby{{ manageiq.ruby.version | regex_replace('.', '') }}"
+
+- name: Install additionnal gems
+  command: "scl enable {{ ruby_scl }} 'gem install foreman'"
+
+- name: Install node.js packages
+  npm:
+    name: "{{ item }}"
+    state: latest
+    global: yes
+  with_items:
+    - bower
+    - gulp-cli
+    - webpack
+    - yarn
+
+- name: Install memcached package
+  yum:
+    name: memcached
+    state: latest
+
+- name: Start and enable memcached.service
+  service:
+    name: memcached
+    state: started
+    enabled: yes
+
+- block:
+    - name: Create ManageIQ plugins directory
+      file:
+        name: /home/miq/manageiq/plugins
+        state: directory
+
+    - name: Clone ManageIQ Clussic UI plugin repository
+      git:
+        repo: https://github.com/ManageIQ/manageiq-ui-classic.git
+        dest: /home/miq/manageiq/plugins/manageiq-ui-classic
+        version: master
+
+    - name: Clone Patrick Riley's V2V UI plugin repository
+      git:
+        repo: https://github.com/priley86/miq_v2v_ui_plugin.git
+        dest: /home/miq/manageiq/plugins/miq_v2v_ui_plugin
+        version: migration-poc
+
+    - name: Set miq user home directory ownership
+      command: chown -R miq:miq /home/miq
+      become_user: root
+
+    - name: Setup ManageIQ
+      command: npm install
+      args:
+        chdir: /home/miq/manageiq/plugins/miq_v2v_ui_plugin
+
+    - name: Restart ManageIQ
+      command: bundle exec rake evm:restart
+      args:
+        chdir: /home/miq/manageiq
+
+  become_user: miq
+
+- name: Wait for ManageIQ service to be up
+  wait_for:
+    port: 3000
+    delay: 10
+    sleep: 10
+    timeout: 300

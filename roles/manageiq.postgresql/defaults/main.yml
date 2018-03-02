@@ -1,0 +1,7 @@
+---
+manageiq:
+  postgresql:
+    version: "9.5"
+    vg_name: "vg_miq_pgsql"
+    lv_name: "lv_data"
+    db_password: "smartvm"
