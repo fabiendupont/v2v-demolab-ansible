@@ -2,13 +2,17 @@ all:
   children:
     ManageIQ:
       vars:
+        ansible_user: root
+        ansible_ssh_password: secret
       children:
         database:
           hosts:
             miq.example.com:
+              manageiq_postgresql_disk: /dev/sdb
         ui:
           hosts:
             miq.example.com:
         worker:
           hosts:
             miq.example.com:
+              manageiq_logs_disk: /dev/sdb
