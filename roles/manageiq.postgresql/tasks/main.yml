@@ -56,6 +56,7 @@
   with_items:
     - "{{ postgresql_scl }}-postgresql-devel"
     - "{{ postgresql_scl }}-postgresql-server"
+    - python-psycopg2
 
 - name: Generate /etc/profile.d config file for PostgreSQL
   template:
@@ -99,4 +100,8 @@
     enabled: yes
 
 - name: Create database user
-  command: sudo -i -u postgres scl enable {{ postgresql_scl }} "psql -c \"CREATE ROLE root SUPERUSER LOGIN PASSWORD 'smartvm'\""
+  # command: sudo -i -u postgres scl enable {{ postgresql_scl }} "psql -c \"CREATE ROLE root SUPERUSER LOGIN PASSWORD 'smartvm'\""
+  postgresql_user:
+    name: root
+    password: smartvm
+    role_attr_flags: SUPERUSER
