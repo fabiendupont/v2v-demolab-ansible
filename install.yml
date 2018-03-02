@@ -10,7 +10,7 @@
     - role: manageiq.postgresql
 
 - name: ManageIQ worker installation
-  hosts: ManageIQ:&worker,ManageIQ:&ui
+  hosts: ManageIQ:&worker
   roles:
     - role: manageiq.worker
 
