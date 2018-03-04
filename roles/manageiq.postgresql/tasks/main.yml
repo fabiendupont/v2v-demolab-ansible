@@ -87,6 +87,7 @@
     regexp: '\s*peer$'
     replace: '    trust'
     backup: yes
+  notify: Restart postgresql service
 
 - name: Enable and start PostgreSQL service
   service:
