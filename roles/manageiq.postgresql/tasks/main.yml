@@ -95,6 +95,9 @@
     state: started
     enabled: yes
 
+- name: Force handlers so that PostgreSQL access rules are sync'd
+  meta: flush_handlers
+
 - name: Create database user
   # command: sudo -i -u postgres scl enable {{ postgresql_scl }} "psql -c \"CREATE ROLE root SUPERUSER LOGIN PASSWORD 'smartvm'\""
   postgresql_user:
