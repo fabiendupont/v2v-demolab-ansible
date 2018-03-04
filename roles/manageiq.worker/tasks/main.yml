@@ -7,26 +7,26 @@
   yum:
     name: "{{ item }}"
     state: present
-    with_items:
-      - cmake
-      - bzip2
-      - docker
-      - gcc-c++
-      - git
-      - libcurl-devel
-      - libffi-devel
-      - libxml2-devel
-      - libxslt-devel
-      - nodejs
-      - npm
-      - openssl-devel
-      - patch
-      - readline-devel
-      - sqlite-devel
-      - "{{ ruby_scl }}-ruby"
-      - "{{ ruby_scl }}-ruby-devel"
-      - "{{ ruby_scl }}-rubygems"
-      - "{{ ruby_scl }}-rubygem-bundler"
+  with_items:
+    - cmake
+    - bzip2
+    - docker
+    - gcc-c++
+    - git
+    - libcurl-devel
+    - libffi-devel
+    - libxml2-devel
+    - libxslt-devel
+    - nodejs
+    - npm
+    - openssl-devel
+    - patch
+    - readline-devel
+    - sqlite-devel
+    - "{{ ruby_scl }}-ruby"
+    - "{{ ruby_scl }}-ruby-devel"
+    - "{{ ruby_scl }}-rubygems"
+    - "{{ ruby_scl }}-rubygem-bundler"
 
 - name: Generate /etc/profile.d config file for Ruby
   template:
