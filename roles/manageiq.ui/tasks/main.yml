@@ -6,17 +6,6 @@
 - name: Install additionnal gems
   command: "scl enable {{ ruby_scl }} 'gem install foreman'"
 
-- name: Install node.js packages
-  npm:
-    name: "{{ item }}"
-    state: latest
-    global: yes
-  with_items:
-    - bower
-    - gulp-cli
-    - webpack
-    - yarn
-
 - block:
     - name: Create ManageIQ plugins directory
       file:
