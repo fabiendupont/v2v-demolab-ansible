@@ -122,24 +122,25 @@
 
 - block:
     - name: Install dependencies using bundler
-      command: bundle install
+      command: scl enable {{ ruby_scl }} bundle install
       args:
         chdir: /home/miq/manageiq
 
     - name: Clean unused gems
-      command: bundle clean --force
+      command: scl enable {{ ruby_scl }} bundle clean --force
       args:
         chdir: /home/miq/manageiq
 
     - name: Setup ManageIQ
-      command: bin/setup
+      command: scl enable {{ ruby_scl }} bin/setup
       args:
         chdir: /home/miq/manageiq
 
     - name: Start ManageIQ
-      command: bundle exec rake evm:start
+      command: scl enable {{ ruby_scl }} bundle exec rake evm:start
       args:
         chdir: /home/miq/manageiq
+      when: inventory_hostname not in groups['ui']
 
   become: true
   become_user: miq
