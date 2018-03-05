@@ -52,7 +52,7 @@
         chdir: /home/miq/manageiq/plugins/miq_v2v_ui_plugin
 
     - name: Start ManageIQ
-      command: scl enable {{ ruby_scl }} 'bundle exec rake evm:start'
+      command: scl enable {{ ruby_scl }} 'bundle exec bin/rake evm:start'
       args:
         chdir: /home/miq/manageiq
 
