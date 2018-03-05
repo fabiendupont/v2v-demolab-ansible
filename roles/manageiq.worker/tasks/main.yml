@@ -130,13 +130,13 @@
       args:
         chdir: /home/miq/manageiq
 
-    - name: Clean unused gems
-      command: scl enable {{ ruby_scl }} 'bundle clean --force'
+    - name: Setup ManageIQ
+      command: scl enable {{ ruby_scl }} 'bin/setup'
       args:
         chdir: /home/miq/manageiq
 
-    - name: Setup ManageIQ
-      command: scl enable {{ ruby_scl }} 'bin/setup'
+    - name: Clean unused gems
+      command: scl enable {{ ruby_scl }} 'bundle clean --force'
       args:
         chdir: /home/miq/manageiq
 
