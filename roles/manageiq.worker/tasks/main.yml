@@ -17,6 +17,7 @@
     - libffi-devel
     - libxml2-devel
     - libxslt-devel
+    - memcached
     - nodejs
     - npm
     - openssl-devel
@@ -58,6 +59,12 @@
 - name: Start and enable docker.service
   service:
     name: docker
+    state: started
+    enabled: yes
+
+- name: Start and enable memcached.service
+  service:
+    name: memcached
     state: started
     enabled: yes
 
@@ -134,7 +141,7 @@
       command: scl enable {{ ruby_scl }} 'bin/setup'
       args:
         chdir: /home/miq/manageiq
-      env:
+      environment:
         PATH: "/home/miq/manageiq/bin:{{ ansible_env.PATH }}"
 
     - name: Clean unused gems

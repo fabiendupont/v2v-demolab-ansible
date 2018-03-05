@@ -17,17 +17,6 @@
     - webpack
     - yarn
 
-- name: Install memcached package
-  yum:
-    name: memcached
-    state: latest
-
-- name: Start and enable memcached.service
-  service:
-    name: memcached
-    state: started
-    enabled: yes
-
 - block:
     - name: Create ManageIQ plugins directory
       file:
