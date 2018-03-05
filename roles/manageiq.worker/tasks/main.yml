@@ -119,7 +119,7 @@
 
 - name: Mount logs logical volume
   mount:
-    name: "/home/miq/manageiq/logs"
+    name: "/home/miq/manageiq/log"
     src: "/dev/mapper/{{ manageiq_logs_vg_name }}-{{ manageiq_logs_lv_name }}"
     fstype: xfs
     state: mounted
