@@ -60,6 +60,7 @@
       args:
         chdir: /home/miq/manageiq
 
+  become: true
   become_user: miq
 
 - name: Wait for ManageIQ service to be up
