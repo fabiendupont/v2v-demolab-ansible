@@ -55,8 +55,8 @@
       args:
         chdir: /home/miq/manageiq/plugins/miq_v2v_ui_plugin
 
-    - name: Restart ManageIQ
-      command: scl enable {{ ruby_scl }} bundle exec rake evm:start
+    - name: Start ManageIQ
+      command: scl enable {{ ruby_scl }} 'bundle exec rake evm:start'
       args:
         chdir: /home/miq/manageiq
 
