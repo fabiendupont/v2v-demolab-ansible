@@ -126,7 +126,7 @@
 
 - block:
     - name: Install dependencies using bundler
-      command: scl enable {{ ruby_scl }} 'bundle install'
+      command: scl enable {{ ruby_scl }} 'scl enable {{ postgresql_scl }} "bundle install"'
       args:
         chdir: /home/miq/manageiq
 
