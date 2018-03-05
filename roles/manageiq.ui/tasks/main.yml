@@ -46,10 +46,6 @@
         dest: /home/miq/manageiq/plugins/miq_v2v_ui_plugin
         version: migration-poc
 
-      # - name: Set miq user home directory ownership
-      #   command: chown -R miq:miq /home/miq
-      #   become_user: root
-
     - name: Setup ManageIQ
       command: npm install
       args:
