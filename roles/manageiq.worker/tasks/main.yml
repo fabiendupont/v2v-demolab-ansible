@@ -171,3 +171,4 @@
     delay: 10
     sleep: 10
     timeout: 300
+  when: inventory_hostname not in groups['ui']
