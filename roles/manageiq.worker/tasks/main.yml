@@ -134,6 +134,8 @@
       command: scl enable {{ ruby_scl }} 'bin/setup'
       args:
         chdir: /home/miq/manageiq
+      env:
+        PATH: "/home/miq/manageiq/bin:{{ ansible_env.PATH }}"
 
     - name: Clean unused gems
       command: scl enable {{ ruby_scl }} 'bundle clean --force'
@@ -141,7 +143,7 @@
         chdir: /home/miq/manageiq
 
     - name: Start ManageIQ
-      command: scl enable {{ ruby_scl }} 'bundle exec ./bin/rake evm:start'
+      command: scl enable {{ ruby_scl }} 'bundle exec bin/rake evm:start'
       args:
         chdir: /home/miq/manageiq
       when: inventory_hostname not in groups['ui']
