@@ -141,6 +141,7 @@
       args:
         chdir: /home/miq/manageiq
 
+  become: true
   become_user: miq
 
 - name: Enable port 3000/TCP
