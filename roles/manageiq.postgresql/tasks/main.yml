@@ -3,12 +3,6 @@
   set_fact:
     postgresql_scl: "rh-postgresql{{ manageiq_postgresql_version | regex_replace('\\.', '') }}"
 
-- debug:
-    var: "{{ item }}"
-  with_items:
-    - manageiq_postgresql_version
-    - postgresql_scl
-
 - name: Create partition on database disk
   command: "parted --script --align opt {{ manageiq_postgresql_disk }} mklabel msdos mkpart primary ext2 1 100% toggle 1 lvm"
   args:
