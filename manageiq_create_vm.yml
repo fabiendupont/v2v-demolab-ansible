@@ -20,9 +20,6 @@
           template: "{{ manageiq_vm_template }}"
           cpu_sockets: "{{ manageiq_vm_cpus }}"
           memory: "{{ manageiq_vm_memory }}GiB"
-          nics:
-            - name: nic1
-              mac_address: 00:1a:4a:16:01:03
           cloud_init:
             root_password: "{{ manageiq_vm_root_password }}"
             custom_script: |
@@ -33,6 +30,7 @@
                 - hostnamectl set-hostname {{ manageiq_vm_name }}.{{ manageiq_vm_dns_domain }}
                 - systemctl restart ovirt-guest-agent
                 - echo -e "[defaults]\nlog_path = /root/ansible.log\n" > /root/.ansible.cfg
+                - touch /etc/cloud/cloud-init.disabled
 
       - name: Add database disk to virtual machine
         ovirt_disk:
