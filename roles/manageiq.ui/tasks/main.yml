@@ -12,12 +12,14 @@
         repo: https://github.com/ManageIQ/manageiq-ui-classic.git
         dest: /home/miq/manageiq-ui-classic
         version: master
+        force: true
 
     - name: Clone Patrick Riley's V2V UI plugin repository
       git:
         repo: https://github.com/priley86/miq_v2v_ui_plugin.git
         dest: /home/miq/miq_v2v_ui_plugin
         version: migration-poc
+        force: true
 
     - name: Add development repos to ManageIQ
       copy:
