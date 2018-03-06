@@ -13,7 +13,24 @@
       yum:
         name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
         state: present
-  when: ansible_distribution == "RedHat"
+  when:
+    - ansible_distribution == "RedHat"
+    - manageiq_rhn_username is defined
+    - manageiq_rhn_password is defined
+
+- block:
+    - name: Add custom repos to YUM configuration
+      yum_repository:
+        name: "{{ item['name'] }}"
+        baseurl: "{{ item['baseurl'] }}"
+        enabled: "{{ item['enabled'] | default('yes') }}"
+        gpgcheck: "{{ item['gpgcheck'] | default('no') }}"
+        skip_if_unavailable: "{{ item['skip_if_unavailable'] | default('no') }}"
+        exclude: "{{ item['exclude'] | default('') }}"
+      with_items: "{{ rhel_custom_repos }}"
+  when:
+    - ansible_distribution == "Red Hat"
+    - rhel_custom_repos is defined
 
 - block:
     - name: Enable additionnal repositrories

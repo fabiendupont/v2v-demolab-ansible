@@ -26,7 +26,7 @@
         group: miq
         mode: 0644
         content: |
-          override_gem 'miq_v2v_ui', :path => File.expand_path('../../manageiq-ui-classic', __dir__)
+          override_gem 'manageiq-ui-classic', :path => File.expand_path('../../manageiq-ui-classic', __dir__)
           gem 'miq_v2v_ui', :path => File.expand_path('../../miq_v2v_ui_plugin', __dir__)
 
     - name: Setup ManageIQ

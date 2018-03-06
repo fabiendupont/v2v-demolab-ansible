@@ -116,7 +116,7 @@
         - inventory
 
     - name: Run the Ansible playbook that actually deploys ManageIQ
-      command: ansible-playbook install.yml
+      command: ansible-playbook manageiq_install.yml
       args:
         chdir: /root/v2v-demolab-ansible
       async: 1000
