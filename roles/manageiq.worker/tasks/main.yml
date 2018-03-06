@@ -125,11 +125,12 @@
     state: mounted
 
 - name: Set miq user home directory ownership
-  file:
-    path: /home/miq
-    owner: miq
-    group: miq
-    recurse: true
+  command: chown -R miq:miq /home/miq
+#  file:
+#    path: /home/miq
+#    owner: miq
+#    group: miq
+#    recurse: true
 
 - block:
     - name: Install dependencies using bundler
