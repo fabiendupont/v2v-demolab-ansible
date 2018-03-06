@@ -7,22 +7,27 @@
   command: "scl enable {{ ruby_scl }} 'gem install foreman'"
 
 - block:
-    - name: Create ManageIQ plugins directory
-      file:
-        name: /home/miq/manageiq/plugins
-        state: directory
-
     - name: Clone ManageIQ Clussic UI plugin repository
       git:
         repo: https://github.com/ManageIQ/manageiq-ui-classic.git
-        dest: /home/miq/manageiq/plugins/manageiq-ui-classic
+        dest: /home/miq/manageiq-ui-classic
         version: master
 
     - name: Clone Patrick Riley's V2V UI plugin repository
       git:
         repo: https://github.com/priley86/miq_v2v_ui_plugin.git
-        dest: /home/miq/manageiq/plugins/miq_v2v_ui_plugin
+        dest: /home/miq/miq_v2v_ui_plugin
         version: migration-poc
+
+    - name: Add development repos to ManageIQ
+      copy:
+        dest: /home/miq/manageiq/bundler.d/Gemfile.dev.rb
+        owner: miq
+        group: miq
+        mode: 0644
+        content: |
+          override_gem 'miq_v2v_ui', :path => File.expand_path('../../manageiq-ui-classic', __dir__)
+          gem 'miq_v2v_ui', :path => File.expand_path('../../miq_v2v_ui_plugin', __dir__)
 
     - name: Setup ManageIQ
       command: npm install
