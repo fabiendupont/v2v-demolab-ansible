@@ -11,15 +11,13 @@
           username: "{{ ovirt_api_username }}"
           password: "{{ ovirt_api_password }}"
           insecure: yes
-        tags:
-          - ovirt_debug
 
       - name: Create virtual machine
         ovirt_vms:
           auth: "{{ ovirt_auth }}"
           name: "{{ manageiq_vm_name }}.{{ manageiq_vm_dns_domain }}"
-          cluster: V2V-Cluster
-          template: centos-7-ci
+          cluster: "{{ manageiq_vm_ovirt_cluster }}"
+          template: "{{ manageiq_vm_template }}"
           cpu_sockets: "{{ manageiq_vm_cpus }}"
           memory: "{{ manageiq_vm_memory }}GiB"
           nics:
