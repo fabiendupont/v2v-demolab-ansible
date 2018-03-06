@@ -28,6 +28,7 @@
                 - ifdown eth0
                 - ifup eth0
                 - hostnamectl set-hostname {{ manageiq_vm_name }}.{{ manageiq_vm_dns_domain }}
+                - echo "{{ manageiq_vm_ip_address }} {{ manageiq_vm_name }}.{{ manageiq_vm_dns_domain }}" >> /etc/hosts
                 - systemctl restart ovirt-guest-agent
                 - echo -e "[defaults]\nlog_path = /root/ansible.log\n" > /root/.ansible.cfg
                 - touch /etc/cloud/cloud-init.disabled
@@ -126,8 +127,8 @@
         jid: "{{ ansible_run.ansible_job_id }}"
       register: ansible_result
       until: ansible_result.finished
-      retries: 100
-      delay: 10
+      retries: 200
+      delay: 30
       ignore_errors: yes
       tags:
         - playbook
