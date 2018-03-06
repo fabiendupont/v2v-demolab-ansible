@@ -1,0 +1,10 @@
+---
+rhel_custom_repos:
+  - name: rhel-7-server-rpms
+    baseurl: http://repos.example.com/rhel-7-server-rpms/
+  - name: rhel-7-server-optional-rpms
+    baseurl: http://repos.example.com/rhel-7-server-optional-rpms/
+  - name: rhel-7-server-extras-rpms
+    baseurl: http://repos.example.com/rhel-7-server-extras-rpms/
+    exclude: cockpit-bridge cockpit-system
+

@@ -1,0 +1,13 @@
+---
+manageiq_vm_name: manageiq
+manageiq_vm_cpus: 4
+manageiq_vm_memory: 16
+manageiq_vm_ip_address: 192.168.0.42
+manageiq_vm_netmask: 255.255.255.0
+manageiq_vm_subnet_prefix: 24
+manageiq_vm_gateway: 192.168.0.254
+manageiq_vm_dns_servers: 192.168.0.253
+manageiq_vm_dns_domain: example.com
+manageiq_vm_disks_postgresql: /dev/sdb
+manageiq_vm_disks_logs: /dev/sdc
+manageiq_vm_root_password: secret
