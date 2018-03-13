@@ -10,7 +10,7 @@ all:
           hosts:
             miq.example.com:
               # Specify the disk to use for database storage (mandatory)
-              manageiq_postgresql_disk: /dev/sdb
+              manageiq_postgresql_disk: /dev/vdb
               # If you want to change the default LVM naming (optional)
               #manageiq_postgresql_vg_name: miq_pgsql_vg
               #manageiq_postgresql_lv_name: data_lv
@@ -21,7 +21,7 @@ all:
           hosts:
             miq.example.com:
               # Specify the disk to use for logs storage
-              manageiq_logs_disk: /dev/sdb
+              manageiq_logs_disk: /dev/vdc
               # If you want to change the default LVM naming (optional)
               #manageiq_logs_vg_name: miq_logs_vg
               #manageiq_logs_lv_name: data_lv
