@@ -3,7 +3,7 @@
   set_fact:
     ruby_scl: "rh-ruby{{ manageiq_ruby_version | regex_replace('\\.', '') }}"
 
-- name: Install additionnal gems
+- name: Install additional gems
   command: "scl enable {{ ruby_scl }} 'gem install foreman'"
 
 - block:
