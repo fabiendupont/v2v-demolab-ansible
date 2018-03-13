@@ -1,8 +1,4 @@
 ---
-- name: Set facts for better readability
-  set_fact:
-    ruby_scl: "rh-ruby{{ manageiq_ruby_version | regex_replace('\\.', '') }}"
-
 - name: Install required packages
   yum:
     name: "{{ item }}"
@@ -24,20 +20,20 @@
     - patch
     - readline-devel
     - sqlite-devel
-    - "{{ ruby_scl }}-ruby"
-    - "{{ ruby_scl }}-ruby-devel"
-    - "{{ ruby_scl }}-rubygems"
-    - "{{ ruby_scl }}-rubygem-bundler"
+    - "{{ manageiq_ruby_scl }}-ruby"
+    - "{{ manageiq_ruby_scl }}-ruby-devel"
+    - "{{ manageiq_ruby_scl }}-rubygems"
+    - "{{ manageiq_ruby_scl }}-rubygem-bundler"
 
 - name: Generate /etc/profile.d config file for Ruby
   template:
     src: etc/profile.d/scl.sh.j2
-    dest: "/etc/profile.d/{{ ruby_scl }}.sh"
+    dest: "/etc/profile.d/{{ manageiq_ruby_scl }}.sh"
     owner: root
     group: root
     mode: 0755
   vars:
-    - scl: "{{ ruby_scl }}"
+    - scl: "{{ manageiq_ruby_scl }}"
 
 - name: Install node.js packages
   npm:
@@ -78,12 +74,23 @@
     system: yes
     groups: docker
 
-- name: Clone ManageIQ repository
-  git:
-    repo: https://github.com/ManageIQ/manageiq.git
-    dest: /home/miq/manageiq
-    version: master
-    force: true
+# Clone git repositories as miq user
+- block:
+  - name: Clone ManageIQ repository
+    git:
+      repo: "https://github.com/{{ item.username }}/{{ item.name }}.git"
+      dest: "/home/miq/{{ item.name }}"
+      version: "{{ item.branch }}"
+      force: true
+    with_items: "{{ manageiq_git_repos }}"
+
+  - name: Install dependencies for the component
+    command: "{{ item.deps_command }}"
+    args:
+      chdir: "/home/miq/{{ item.name }}"
+
+  become: true
+  become_user: miq
 
 - name: Create partition on logs disk
   command: "parted --script --align opt {{ manageiq_logs_disk }} mklabel msdos mkpart primary ext2 1 100% toggle 1 lvm"
@@ -125,6 +132,7 @@
     fstype: xfs
     state: mounted
 
+# FIXME: Apparently, using chmod is faster then using file module
 - name: Set miq user home directory ownership
   command: chown -R miq:miq /home/miq
 #  file:
@@ -134,28 +142,44 @@
 #    recurse: true
 
 - block:
-    - name: Install dependencies using bundler
-      command: scl enable {{ ruby_scl }} {{ postgresql_scl }} 'bundle install --jobs 3'
-      args:
-        chdir: /home/miq/manageiq
-
     - name: Setup ManageIQ
-      command: scl enable {{ ruby_scl }} 'bin/setup'
+      command: scl enable {{ manageiq_ruby_scl }} 'bin/setup'
       args:
         chdir: /home/miq/manageiq
       environment:
         PATH: "/home/miq/manageiq/bin:{{ ansible_env.PATH }}"
 
     - name: Clean unused gems
-      command: scl enable {{ ruby_scl }} 'bundle clean --force'
+      command: scl enable {{ manageiq_ruby_scl }} 'bundle clean --force'
       args:
         chdir: /home/miq/manageiq
 
     - name: Start ManageIQ
-      command: scl enable {{ ruby_scl }} 'bundle exec bin/rake evm:start'
+      command: scl enable {{ manageiq_ruby_scl }} 'bundle exec bin/rake evm:start'
       args:
         chdir: /home/miq/manageiq
       when: inventory_hostname not in groups['ui']
+
+    - name: Wait for ManageIQ service to be up
+      wait_for:
+        port: 3000
+        delay: 10
+        sleep: 10
+        timeout: 300
+
+    - name: Start the ManageIQ UI
+      command: ./node_modules/.bin/webpack-dev-server --config config/webpack/development.js
+      args:
+        chdir: /home/miq/manageiq-ui-classic
+      environment:
+        - NODE_ENV: development
+
+    - name: Wait for ManageIQ UI to be up
+      wait_for:
+        port: 8080
+        delay: 10
+        sleep: 10
+        timeout: 300
 
   become: true
   become_user: miq
@@ -168,17 +192,39 @@
     group: root
     mode: 0644
 
-- name: Enable port 3000/TCP
-  firewalld:
-    port: 3000/tcp
-    state: enabled
-    permanent: yes
-    immediate: yes
+- name: Install httpd and mod_ssl packages
+  yum:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - httpd
+    - mod_ssl
 
-- name: Wait for ManageIQ service to be up
-  wait_for:
-    port: 3000
-    delay: 10
-    sleep: 10
-    timeout: 300
-  when: inventory_hostname not in groups['ui']
+- name: Adding HTTPD config to proxy 443 to 8080
+  copy:
+    dest: /etc/httpd/conf.d/manageiq.conf
+    owner: root
+    group: root
+    mode: 0644
+    content: |
+      ProxyPass "/" "http://localhost:8080/"
+      ProxyPassReverse "/" "http://localhost:8080/"
+
+- name: Enable SELinux boolean so that HTTPD can relay
+  seboolean:
+    name: httpd_can_network_relay
+    state: true
+    permanent: true
+
+- name: Start and enable httpd.service
+  service:
+    name: httpd
+    state: started
+    enabled: true
+
+- name: Enable https service in firewalld
+  firewalld:
+    service: https
+    state: enabled
+    permanent: true
+    immediate: true

@@ -1,0 +1,13 @@
+[Unit]
+Description=EVM server daemon
+After=syslog.target
+
+[Service]
+ExecStart=/bin/sh -c "/bin/evmserver.sh start"
+ExecStop=/bin/sh -c "/bin/evmserver.sh stop"
+Type=forking
+Restart=on-failure
+KillMode=process
+
+[Install]
+WantedBy=multi-user.target
