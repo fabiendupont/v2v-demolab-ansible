@@ -12,7 +12,7 @@ manageiq_git_repos:
     deps_command: npm install
   - name: miq_v2v_ui_plugin
     username: priley86
-    branch: sprint5
+    branch: migration-poc
     deps_command: npm install
   - name: manageiq
     username: ManageIQ
