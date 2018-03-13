@@ -146,3 +146,32 @@ The `inventory.example.yml` file shows the options one can set.
 | manageiq_logs_lv_name       | Name of the logical volume for ManageIQ logs |
 
 Apart from the disks, you shouldn't have to set these options.
+
+## Starting the service 
+
+There is no systemd service definition to start MiQ and needs to be started manually as user `miq`
+
+The steps are the following. Being `root` converti into miq user
+```
+# su - miq
+```
+Move to the manageiq dir
+```
+cd /home/miq/manageiq
+```
+Start ManageIQ backend service:
+```
+bundle exec rake evm:start
+```
+Move to ui service dir
+```
+cd /home/miq/manageiq-ui-classic
+```
+Start ManageIQ frontend service
+```
+NODE_ENV=development ./node_modules/.bin/webpack-dev-server --config config/webpack/development.js
+```
+The service will be accesible as `http` on port `3000`
+```
+http://miq.example.com:3000
+```
