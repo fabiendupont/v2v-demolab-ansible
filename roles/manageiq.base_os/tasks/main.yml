@@ -50,3 +50,12 @@
     - lvm2
     - firewalld
 
+- name: Enable needed services
+  service:
+    name: "{{ item }}"
+    enabled: yes   
+    state: started
+  with_items:
+    - firewalld
+    
+ 
