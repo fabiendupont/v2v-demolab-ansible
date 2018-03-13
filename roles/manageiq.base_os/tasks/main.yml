@@ -33,7 +33,7 @@
     - rhel_custom_repos is defined
 
 - block:
-    - name: Enable additionnal repositrories
+    - name: Enable aditionnal repositories
       yum:
         name: "{{ item }}"
         state: present
