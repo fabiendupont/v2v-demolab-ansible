@@ -42,8 +42,11 @@
         - centos-release-scl
   when: ansible_distribution == "CentOS"
   
-- name: Enable additionnal repositrories
+- name: Ensure needed packages are installed
   yum:
-    name: "lvm2"
+    name: "{{ item }}"
     state: present
+  with_items:
+    - lvm2
+    - firewalld
 
