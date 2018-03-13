@@ -84,6 +84,35 @@
       force: true
     with_items: "{{ manageiq_git_repos }}"
 
+  - name: Disable GraphQL plugin [1/3] (FIXME)
+    replace:
+      path: /home/miq/manageiq/Gemfile
+      regexp: 'group :graphql_api, :manageiq_default do'
+      replace: '#group :graphql_api, :manageiq_default do'
+    tags: gemfile
+
+  - name: Disable GraphQL plugin [2/3] (FIXME)
+    replace:
+      path: /home/miq/manageiq/Gemfile
+      regexp: '  manageiq_plugin "manageiq-graphql"'
+      replace: '#  manageiq_plugin "manageiq-graphql"'
+    tags: gemfile
+
+  - name: Disable GraphQL plugin [2/3] (FIXME)
+    replace:
+      path: /home/miq/manageiq/Gemfile
+      regexp: '^end$'
+      replace: '#end'
+      after: '#  manageiq_plugin "manageiq-graphql"'
+      before: 'group :scheduler, :manageiq_default do'
+    tags: gemfile
+
+  - name: Disable GraphQL plugin (FIXME)
+    replace:
+      path: /home/miq/manageiq/Gemfile
+      regexp: 'group :graphql_api, :manageiq_default do'
+      replace: '#group :graphql_api, :manageiq_default do'
+
   - name: Install dependencies for the component
     command: "{{ item.deps_command }}"
     args:
@@ -133,14 +162,12 @@
     fstype: xfs
     state: mounted
 
-# FIXME: Apparently, using chmod is faster then using file module
-- name: Set miq user home directory ownership
-  command: chown -R miq:miq /home/miq
-#  file:
-#    path: /home/miq
-#    owner: miq
-#    group: miq
-#    recurse: true
+- name: Set ownership of logs directory to miq
+  file:
+    path: /home/miq/manageiq/log
+    owner: miq
+    group: miq
+    recurse: true
 
 - block:
     - name: Setup ManageIQ
