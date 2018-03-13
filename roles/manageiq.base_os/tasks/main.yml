@@ -41,8 +41,8 @@
         - epel-release
         - centos-release-scl
   when: ansible_distribution == "CentOS"
-  
-- name: Ensure needed packages are installed
+
+- name: Add packages not provided by RHEL cloud image
   yum:
     name: "{{ item }}"
     state: present
@@ -50,12 +50,17 @@
     - lvm2
     - firewalld
 
-- name: Enable needed services
+- name: Start and enable extra services
   service:
     name: "{{ item }}"
-    enabled: yes   
+    enabled: yes
     state: started
   with_items:
     - firewalld
-    
- 
+
+- name: Disable IPv6 (troublesome in DemoLab)
+  sysctl:
+    sysctl_file: /etc/sysctl.d/ipv6.conf
+    name: net.ipv6.conf.all.disable_ipv6
+    value: 1
+    reload: yes

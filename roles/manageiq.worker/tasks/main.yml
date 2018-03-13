@@ -160,6 +160,14 @@
   become: true
   become_user: miq
 
+- name:
+  copy:
+    src: /usr/lib/systemd/system/evmserverd.service
+    dest: /usr/lib/systemd/system/evmserverd.service
+    owner: root
+    group: root
+    mode: 0644
+
 - name: Enable port 3000/TCP
   firewalld:
     port: 3000/tcp

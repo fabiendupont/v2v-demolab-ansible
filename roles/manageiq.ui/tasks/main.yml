@@ -14,6 +14,11 @@
         version: master
         force: true
 
+    - name: Setup ManageIQ UI Classic
+      command: npm install
+      args:
+        chdir: /home/miq/manageiq-ui-plugin
+
     - name: Clone Patrick Riley's V2V UI plugin repository
       git:
         repo: https://github.com/priley86/miq_v2v_ui_plugin.git
@@ -31,7 +36,7 @@
           override_gem 'manageiq-ui-classic', :path => File.expand_path('../../manageiq-ui-classic', __dir__)
           gem 'miq_v2v_ui', :path => File.expand_path('../../miq_v2v_ui_plugin', __dir__)
 
-    - name: Setup ManageIQ
+    - name: Setup V2V UI Plugin
       command: npm install
       args:
         chdir: /home/miq/miq_v2v_ui_plugin
@@ -41,12 +46,63 @@
       args:
         chdir: /home/miq/manageiq
 
+    - name: Wait for ManageIQ service to be up
+      wait_for:
+        port: 3000
+        delay: 10
+        sleep: 10
+        timeout: 300
+
+    - name: Start the V2V UI Plugin
+      command: ./node_modules/.bin/webpack-dev-server --config config/webpack/development.js
+      args:
+        chdir: /home/miq/manageiq-ui-classic
+      environment:
+        - NODE_ENV: development
+
+    - name: Wait for V2V UI Plugin to be up
+      wait_for:
+        port: 8080
+        delay: 10
+        sleep: 10
+        timeout: 300
+
   become: true
   become_user: miq
 
-- name: Wait for ManageIQ service to be up
-  wait_for:
-    port: 3000
-    delay: 10
-    sleep: 10
-    timeout: 300
+- name: Install httpd and mod_ssl packages
+  yum:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - httpd
+    - mod_ssl
+
+- name: Adding HTTPD config to proxy 443 to 8080
+  copy:
+    dest: /etc/httpd/conf.d/manageiq.conf
+    owner: root
+    group: root
+    mode: 0644
+    content: |
+      ProxyPass "/" "http://localhost:8080/"
+      ProxyPassReverse "/" "http://localhost:8080/"
+
+- name: Enable SELinux boolean so that HTTPD can relay
+  seboolean:
+    name: httpd_can_network_relay
+    state: true
+    permanent: true
+
+- name: Start and enable httpd.service
+  service:
+    name: httpd
+    state: started
+    enabled: true
+
+- name: Enable https service in firewalld
+  firewalld:
+    service: https
+    state: enabled
+    permanent: true
+    immediate: true

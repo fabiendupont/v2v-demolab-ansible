@@ -41,7 +41,7 @@
           size: 10GiB
           format: cow
           interface: virtio_scsi
-          storage_domain: NFS-Data
+          storage_domain: V2V-Data1
 
       - name: Add logs disk to virtual machine
         ovirt_disk:
@@ -51,7 +51,7 @@
           size: 10GiB
           format: cow
           interface: virtio_scsi
-          storage_domain: NFS-Data
+          storage_domain: V2V-Data1
 
       - name: Add host to in memory inventory
         add_host:
@@ -77,7 +77,7 @@
         name: "{{ manageiq_vm_name }}.{{ manageiq_vm_dns_domain }}"
         groups: database,worker,ui
         ansible_user: root
-        ansible_ssh_pass: 100Root-
+        ansible_ssh_pass: "{{ manageiq_vm_root_password }}"
       tags:
         - inventory
         - playbook
