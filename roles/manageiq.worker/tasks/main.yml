@@ -84,10 +84,10 @@
       force: true
     with_items: "{{ manageiq_git_repos }}"
 
-  - include: disable_graphql_plugin.yml
+  - include_tasks: disable_graphql_plugin.yml
     when:
       - manageiq_disabled_plugins is defined
-      - 'graphql' in manageiq_disabled_plugins
+      - "'graphql' in manageiq_disabled_plugins"
 
   - name: Install dependencies for the component
     command: "{{ item.deps_command }}"
