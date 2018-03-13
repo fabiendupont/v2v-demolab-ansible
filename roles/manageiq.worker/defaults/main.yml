@@ -1,8 +1,8 @@
 ---
 manageiq_postgresql_version: "9.5"
-manageiq_postgresql_scl: "postgresql95"
+manageiq_postgresql_scl: "rh-postgresql95"
 manageiq_ruby_version: "2.4"
-manageiq_ruby_scl: "ruby24"
+manageiq_ruby_scl: "rh-ruby24"
 manageiq_logs_vg_name: "vg_miq_logs"
 manageiq_logs_lv_name: "lv_data"
 manageiq_git_repos:
