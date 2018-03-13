@@ -1,7 +1,7 @@
 all:
   children:
     ManageIQ:
-      vars:
+      #vars:
         # If you want to change the PostgreSQL or Ruby versions
         #manageiq_postgresql_version: 9.5
         #manageiq_ruby_version: 2.4
