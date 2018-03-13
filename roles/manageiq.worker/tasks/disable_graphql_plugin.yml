@@ -1,0 +1,30 @@
+- name: Disable GraphQL plugin [1/4]
+  command: grep '^group :graphql_api, :manageiq_default do$' /home/miq/manageiq/Gemfile
+  ignore_errors: true
+  register: gemfile_graphql_present
+
+- name: Disable GraphQL plugin [2/4]
+  lineinfile:
+    path: /home/miq/manageiq/Gemfile
+    line: "# BEGIN ANSIBLE MANAGED BLOCK"
+    insertbefore: '^group :graphql_api, :manageiq_default do$'
+  when:
+    - gemfile_graphql_present.rc == 0
+  register: gemfile_marker_begin
+
+- name: Disable GraphQL plugin [3/4]
+  lineinfile:
+    path: /home/miq/manageiq/Gemfile
+    line: "# END ANSIBLE MANAGED BLOCK"
+    insertbefore: '^group :scheduler, :manageiq_default do$'
+  when: gemfile_marker_begin.changed
+  register: gemfile_marker_end
+
+- name: Disable GraphQL plugin [4/4]
+  blockinfile:
+    path: /home/miq/manageiq/Gemfile
+    marker: "# {mark} ANSIBLE MANAGED BLOCK"
+    state: absent
+  when:
+    - gemfile_marker_begin.changed
+    - gemfile_marker_end.changed

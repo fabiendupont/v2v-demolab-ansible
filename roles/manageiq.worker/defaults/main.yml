@@ -18,3 +18,5 @@ manageiq_git_repos:
     username: ManageIQ
     branch: master
     deps_command: "scl enable {{ manageiq_ruby_scl }} {{ manageiq_postgresql_scl }} 'bundle install --jobs 3'"
+manageiq_disabled_plugins:
+  - graphql

@@ -84,34 +84,10 @@
       force: true
     with_items: "{{ manageiq_git_repos }}"
 
-  - name: Disable GraphQL plugin [1/3] (FIXME)
-    replace:
-      path: /home/miq/manageiq/Gemfile
-      regexp: 'group :graphql_api, :manageiq_default do'
-      replace: '#group :graphql_api, :manageiq_default do'
-    tags: gemfile
-
-  - name: Disable GraphQL plugin [2/3] (FIXME)
-    replace:
-      path: /home/miq/manageiq/Gemfile
-      regexp: '  manageiq_plugin "manageiq-graphql"'
-      replace: '#  manageiq_plugin "manageiq-graphql"'
-    tags: gemfile
-
-  - name: Disable GraphQL plugin [2/3] (FIXME)
-    replace:
-      path: /home/miq/manageiq/Gemfile
-      regexp: '^end$'
-      replace: '#end'
-      after: '#  manageiq_plugin "manageiq-graphql"'
-      before: 'group :scheduler, :manageiq_default do'
-    tags: gemfile
-
-  - name: Disable GraphQL plugin (FIXME)
-    replace:
-      path: /home/miq/manageiq/Gemfile
-      regexp: 'group :graphql_api, :manageiq_default do'
-      replace: '#group :graphql_api, :manageiq_default do'
+  - include: disable_graphql_plugin.yml
+    when:
+      - manageiq_disabled_plugins is defined
+      - 'graphql' in manageiq_disabled_plugins
 
   - name: Install dependencies for the component
     command: "{{ item.deps_command }}"
@@ -182,11 +158,25 @@
       args:
         chdir: /home/miq/manageiq
 
+    - name: Check if evm process is running
+      shell: scl enable {{ manageiq_ruby_scl }} 'bundle exec rake evm:status | grep " default | EVM    | stopped "'
+      args:
+        chdir: /home/miq/manageiq
+      ignore_errors: true
+      register: evm_process_status
+
+    - name: Check if evm port is listening
+      shell: ps -edf | grep 3000
+      ignore_errors: true
+      register: evm_port_status
+
     - name: Start ManageIQ
       command: scl enable {{ manageiq_ruby_scl }} 'bundle exec bin/rake evm:start'
       args:
         chdir: /home/miq/manageiq
-      when: inventory_hostname not in groups['ui']
+      when:
+        - evm_process_status.rc == 0
+        - evm_port_status.rc == 0
 
     - name: Wait for ManageIQ service to be up
       wait_for:
@@ -195,12 +185,19 @@
         sleep: 10
         timeout: 300
 
+    - name: Check if evm port is listening
+      shell: ps -edf | grep 8080
+      ignore_errors: true
+      register: v2v_ui_port_status
+
     - name: Start the ManageIQ UI
       command: ./node_modules/.bin/webpack-dev-server --config config/webpack/development.js
       args:
         chdir: /home/miq/manageiq-ui-classic
       environment:
         - NODE_ENV: development
+      when:
+        - v2v_ui_port_status.rc == 0
 
     - name: Wait for ManageIQ UI to be up
       wait_for:
