@@ -7,10 +7,10 @@ manageiq_logs_vg_name: "vg_miq_logs"
 manageiq_logs_lv_name: "lv_data"
 manageiq_git_repos:
   - name: manageiq-ui-classic
-    username: priley86
-    branch: v2v-presets
+    username: ManageIQ
+    branch: master
     deps_command: npm install
-  - name: miq_v2v_ui_plugin
+  - name: sprint5
     username: priley86
     branch: migration-poc
     deps_command: npm install
