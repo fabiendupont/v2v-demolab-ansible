@@ -88,6 +88,7 @@
     command: "{{ item.deps_command }}"
     args:
       chdir: "/home/miq/{{ item.name }}"
+    with_items: "{{ manageiq_git_repos }}"
 
   become: true
   become_user: miq
