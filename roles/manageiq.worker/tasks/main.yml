@@ -146,6 +146,16 @@
     recurse: true
 
 - block:
+    - name: Add development repos to ManageIQ
+      copy:
+        dest: /home/miq/manageiq/bundler.d/Gemfile.dev.rb
+        owner: miq
+        group: miq
+        mode: 0644
+        content: |
+          override_gem 'manageiq-ui-classic', :path => File.expand_path('../../manageiq-ui-classic', __dir__)
+          gem 'miq_v2v_ui', :path => File.expand_path('../../miq_v2v_ui_plugin', __dir__)
+
     - name: Setup ManageIQ
       command: scl enable {{ manageiq_ruby_scl }} 'bin/setup'
       args:
@@ -175,8 +185,8 @@
       args:
         chdir: /home/miq/manageiq
       when:
-        - evm_process_status.rc == 0
-        - evm_port_status.rc == 0
+        - evm_process_status.rc == 0 or
+          evm_port_status.rc == 0
 
     - name: Wait for ManageIQ service to be up
       wait_for:
