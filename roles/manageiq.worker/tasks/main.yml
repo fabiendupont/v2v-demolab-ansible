@@ -207,11 +207,9 @@
       register: v2v_ui_port_status
 
     - name: Start ManageIQ UI
-      shell: nohup ./node_modules/.bin/webpack-dev-server --config config/webpack/development.js &
+      shell: NODE_ENV=development nohup ./node_modules/.bin/webpack-dev-server --config config/webpack/development.js &
       args:
         chdir: /home/miq/manageiq-ui-classic
-      environment:
-        - NODE_ENV: development
       when:
         - v2v_ui_port_status.failed
 
@@ -248,6 +246,7 @@
     group: root
     mode: 0644
     content: |
+      Redirect / https://{{ manageiq_vm_name }}.{{ manageiq_vm_dns_domain }}/
       ProxyPass "/" "http://localhost:8080/"
       ProxyPassReverse "/" "http://localhost:8080/"
 
@@ -263,9 +262,12 @@
     state: started
     enabled: true
 
-- name: Enable https service in firewalld
+- name: Enable http and https services in firewalld
   firewalld:
-    service: https
+    service: "{{ item }}"
     state: enabled
     permanent: true
     immediate: true
+  with_items:
+    - http
+    - https
