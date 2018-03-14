@@ -188,7 +188,7 @@
       args:
         chdir: /home/miq/manageiq
       when:
-        - evm_process_status.rc.failed
+        - evm_process_status.rc != 0
         - evm_port_status.failed
 
     - name: Wait for ManageIQ EVM service to be up
