@@ -112,16 +112,16 @@
       tags:
         - inventory
 
-#    - name: Run the Ansible playbook that actually deploys ManageIQ
-#      command: ansible-playbook manageiq_install.yml
-#      args:
-#        chdir: /root/v2v-demolab-ansible
-#      async: 1000
-#      poll: 0
-#      register: ansible_run
-#      tags:
-#        - playbook
-#
+    - name: Run the Ansible playbook that actually deploys ManageIQ
+      command: ansible-playbook manageiq_install.yml --skip-tags=v2v_content
+      args:
+        chdir: /root/v2v-demolab-ansible
+      async: 1000
+      poll: 0
+      register: ansible_run
+      tags:
+        - playbook
+
 #    - name: Wait for playbook to finish
 #      async_status:
 #        jid: "{{ ansible_run.ansible_job_id }}"
