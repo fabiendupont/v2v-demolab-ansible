@@ -13,8 +13,3 @@
   hosts: ManageIQ:&worker
   roles:
     - role: manageiq.worker
-
-#- name: ManageIQ UI specialisation
-#  hosts: ManageIQ:&ui
-#  roles:
-#    - role: manageiq.ui

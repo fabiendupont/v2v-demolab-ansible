@@ -168,48 +168,54 @@
       args:
         chdir: /home/miq/manageiq
 
-    - name: Check if evm process is running
+    - name: Check if ManageIQ EVM process is running
       shell: scl enable {{ manageiq_ruby_scl }} 'bundle exec rake evm:status | grep " default | EVM    | stopped "'
       args:
         chdir: /home/miq/manageiq
       ignore_errors: true
       register: evm_process_status
 
-    - name: Check if evm port is listening
-      shell: ps -edf | grep 3000
+    - name: Check if ManageIQ EVM port is listening (3000/tcp)
+      wait_for:
+        port: 3000
+        delay: 5
+        timeout: 10
       ignore_errors: true
       register: evm_port_status
 
-    - name: Start ManageIQ
+    - name: Start ManageIQ EVM
       command: scl enable {{ manageiq_ruby_scl }} 'bundle exec bin/rake evm:start'
       args:
         chdir: /home/miq/manageiq
       when:
-        - evm_process_status.rc != 0
-        - evm_port_status.rc != 0
+        - evm_process_status.rc.failed
+        - evm_port_status.failed
 
-    - name: Wait for ManageIQ service to be up
+    - name: Wait for ManageIQ EVM service to be up
       wait_for:
         port: 3000
         delay: 10
         sleep: 10
         timeout: 300
 
-    - name: Check if evm port is listening
-      shell: ps -edf | grep 8080
+    - name: Check if ManageIQ UI port is listening (8080/tcp)
+      wait_for:
+        port: 8080
+        delay: 5
+        timeout: 10
       ignore_errors: true
       register: v2v_ui_port_status
 
-    - name: Start the ManageIQ UI
+    - name: Start ManageIQ UI
       shell: nohup ./node_modules/.bin/webpack-dev-server --config config/webpack/development.js &
       args:
         chdir: /home/miq/manageiq-ui-classic
       environment:
         - NODE_ENV: development
       when:
-        - v2v_ui_port_status.rc != 0
+        - v2v_ui_port_status.failed
 
-    - name: Wait for ManageIQ UI to be up
+    - name: Wait for ManageIQ UI service to be up
       wait_for:
         port: 8080
         delay: 10

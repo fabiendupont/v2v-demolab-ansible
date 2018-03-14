@@ -112,28 +112,28 @@
       tags:
         - inventory
 
-    - name: Run the Ansible playbook that actually deploys ManageIQ
-      command: ansible-playbook manageiq_install.yml
-      args:
-        chdir: /root/v2v-demolab-ansible
-      async: 1000
-      poll: 0
-      register: ansible_run
-      tags:
-        - playbook
-
-    - name: Wait for playbook to finish
-      async_status:
-        jid: "{{ ansible_run.ansible_job_id }}"
-      register: ansible_result
-      until: ansible_result.finished
-      retries: 200
-      delay: 30
-      ignore_errors: yes
-      tags:
-        - playbook
-
-    - name: Debug Ansible result
-      debug:
-        var: ansible_result
-      tags: playbook
+#    - name: Run the Ansible playbook that actually deploys ManageIQ
+#      command: ansible-playbook manageiq_install.yml
+#      args:
+#        chdir: /root/v2v-demolab-ansible
+#      async: 1000
+#      poll: 0
+#      register: ansible_run
+#      tags:
+#        - playbook
+#
+#    - name: Wait for playbook to finish
+#      async_status:
+#        jid: "{{ ansible_run.ansible_job_id }}"
+#      register: ansible_result
+#      until: ansible_result.finished
+#      retries: 200
+#      delay: 30
+#      ignore_errors: yes
+#      tags:
+#        - playbook
+#
+#    - name: Debug Ansible result
+#      debug:
+#        var: ansible_result
+#      tags: playbook
