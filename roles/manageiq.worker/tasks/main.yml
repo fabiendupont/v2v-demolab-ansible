@@ -201,7 +201,7 @@
       register: v2v_ui_port_status
 
     - name: Start the ManageIQ UI
-      command: ./node_modules/.bin/webpack-dev-server --config config/webpack/development.js
+      shell: nohup ./node_modules/.bin/webpack-dev-server --config config/webpack/development.js &
       args:
         chdir: /home/miq/manageiq-ui-classic
       environment:
