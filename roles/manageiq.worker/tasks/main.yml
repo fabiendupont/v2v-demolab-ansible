@@ -225,13 +225,13 @@
   become: true
   become_user: miq
 
-- name:
-  copy:
-    src: /usr/lib/systemd/system/evmserverd.service
-    dest: /usr/lib/systemd/system/evmserverd.service
-    owner: root
-    group: root
-    mode: 0644
+#- name:
+#  copy:
+#    src: /usr/lib/systemd/system/evmserverd.service
+#    dest: /usr/lib/systemd/system/evmserverd.service
+#    owner: root
+#    group: root
+#    mode: 0644
 
 - name: Install httpd and mod_ssl packages
   yum:
