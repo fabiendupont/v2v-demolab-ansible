@@ -13,3 +13,4 @@
   hosts: ManageIQ:&worker
   roles:
     - role: manageiq.worker
+    - role: manageiq.v2v-content

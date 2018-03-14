@@ -1,0 +1,48 @@
+---
+- name: Activate Embedded Ansible role
+#  debug: msg="Activate Embedded Ansible role - https://miq.example.com/api/settings ?"
+  uri:
+    url: http://localhost/api/:id/1/settings
+    user: admin
+    password: smartvm
+    method: PATCH
+    body_format: json
+    body:
+      server:
+        role: "automate,embedded_ansible"
+  tags:
+    - manageiq_roles
+
+- name: Wait for Embedded Ansible role to be active
+  wait_for:
+    port: 54322
+    delay: 10
+    sleep: 10
+    timeout: 300
+  tags:
+    - manageiq_roles
+
+- name: Add v2v-transformation_host repository
+  debug: msg="Add v2v-transformation_host repository - https://miq.example.com/api/configuration_script_sources"
+
+- name: Download V2V automation domain
+  get_url:
+    url: https://github.com/fdupont-redhat/v2v-automate/archive/master.zip
+    dest: /home/miq/v2v-automate.zip
+    remote_src: true
+    owner: miq
+    group: miq
+
+- name: Update the V2V Ansible methods with v2v-transformation_host playbooks
+  debug: msg="Update the V2V Ansible methods with v2v-transformation_host playbooks"
+
+- name: Import V2V automation domain
+  command: scl enable {{ ruby_scl }} 'bundle exec bin/rake evm:automate:import DOMAIN=V2V ZIP_FILE=/home/miq/v2v-automate.zip PREVIEW=false ENABLED=true'
+  args:
+    chdir: /home/miq/manageiq
+
+- name: Add custom buttons for Transformation Hosts
+  debug: msg="Add custom buttons for Transformation Hosts - https://miq.example.com/api/custom_buttons"
+
+- name: Add credentials for RHV hosts
+  debug: msg="Add credentials for RHV hosts - https://miq.example.com/api/authentications"
