@@ -255,7 +255,7 @@
   seboolean:
     name: httpd_can_network_relay
     state: true
-    permanent: true
+    persistent: true
 
 - name: Start and enable httpd.service
   service:
