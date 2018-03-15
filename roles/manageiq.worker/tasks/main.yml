@@ -258,7 +258,7 @@
     group: root
     mode: 0644
     content: |
-      Redirect / https://{{ manageiq_vm_name }}.{{ manageiq_vm_dns_domain }}/
+      Redirect / https://{{ ansible_fqdn }}/
       ProxyPass "/" "http://localhost:8080/"
       ProxyPassReverse "/" "http://localhost:8080/"
 
