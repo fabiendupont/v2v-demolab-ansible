@@ -162,6 +162,18 @@
         chdir: /home/miq/manageiq
       environment:
         PATH: "/home/miq/manageiq/bin:{{ ansible_env.PATH }}"
+      async: 1000
+      poll: 0
+      register: manageiq_setup
+
+    - name: Wait for ManageIQ setup to finish
+      async_status:
+        jid: "{{ manageiq_setup.ansible_job_id }}"
+      register: manageiq_setup_status
+      until: manageiq_setup_status.finished
+      retries: 100
+      delay: 20
+      ignore_errors: yes
 
     - name: Clean unused gems
       command: scl enable {{ manageiq_ruby_scl }} 'bundle clean --force'
