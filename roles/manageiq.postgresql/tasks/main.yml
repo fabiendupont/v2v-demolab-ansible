@@ -86,7 +86,7 @@
 - name: Make PostgreSQL listen on 0.0.0.0
   replace:
     path: "/var/opt/rh/{{ postgresql_scl }}/lib/pgsql/data/postgresql.conf"
-    regexp: '^#listen_addresses = '
+    regexp: '^#listen_addresses = .*$'
     replace: "listen_addresses = '0.0.0.0'"
   notify: Restart postgresql service
 
