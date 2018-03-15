@@ -83,11 +83,25 @@
     backup: yes
   notify: Restart postgresql service
 
+- name: Make PostgreSQL listen on 0.0.0.0
+  replace:
+    path: "/var/opt/rh/{{ postgresql_scl }}/lib/pgsql/data/postgresql.conf"<Paste>
+    regexp: '^#listen_addresses = '
+    replace: "listen_addresses = '0.0.0.0'"
+  notify: Restart postgresql service
+
 - name: Enable and start PostgreSQL service
   service:
     name: "{{ postgresql_scl }}-postgresql"
     state: started
     enabled: yes
+
+- name: Enabled postgresql service in firewalld
+  firewalld:
+    service: postgresql
+    state: enabled
+    permanent: true
+    immediate: true
 
 - name: Force handlers so that PostgreSQL access rules are sync'd
   meta: flush_handlers
