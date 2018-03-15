@@ -219,9 +219,9 @@
       register: v2v_ui_port_status
 
     - name: Start ManageIQ UI
-      shell: NODE_ENV=development nohup ./node_modules/.bin/webpack-dev-server --config config/webpack/development.js &
-      args:
-        chdir: /home/miq/manageiq-ui-classic
+      shell: cd /home/miq/manageiq-ui-classic && NODE_ENV=development nohup ./node_modules/.bin/webpack-dev-server --config config/webpack/development.js &
+#      args:
+#        chdir: /home/miq/manageiq-ui-classic
       when:
         - v2v_ui_port_status.failed
 
