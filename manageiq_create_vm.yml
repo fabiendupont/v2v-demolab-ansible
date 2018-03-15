@@ -80,7 +80,6 @@
         ansible_ssh_pass: "{{ manageiq_vm_root_password }}"
       tags:
         - inventory
-        - playbook
 
 - name: Deploy ManageIQ on the virtual machine
   hosts: "{{ manageiq_vm_name }}.{{ manageiq_vm_dns_domain }}"
@@ -122,18 +121,18 @@
       tags:
         - playbook
 
-#    - name: Wait for playbook to finish
-#      async_status:
-#        jid: "{{ ansible_run.ansible_job_id }}"
-#      register: ansible_result
-#      until: ansible_result.finished
-#      retries: 200
-#      delay: 30
-#      ignore_errors: yes
-#      tags:
-#        - playbook
-#
-#    - name: Debug Ansible result
-#      debug:
-#        var: ansible_result
-#      tags: playbook
+    - name: Wait for playbook to finish
+      async_status:
+        jid: "{{ ansible_run.ansible_job_id }}"
+      register: ansible_result
+      until: ansible_result.finished
+      retries: 200
+      delay: 30
+      ignore_errors: yes
+      tags:
+        - playbook
+
+    - name: Debug Ansible result
+      debug:
+        var: ansible_result
+      tags: playbook
