@@ -2,14 +2,14 @@
 - name: Activate Embedded Ansible role
 #  debug: msg="Activate Embedded Ansible role - https://miq.example.com/api/settings ?"
   uri:
-    url: http://localhost/api/:id/1/settings
+    url: http://localhost/api/servers/1/settings
     user: admin
     password: smartvm
     method: PATCH
     body_format: json
     body:
       server:
-        role: "automate,embedded_ansible"
+        role: "database_operations,event,reporting,scheduler,smartstate,ems_operations,ems_inventory,user_interface,websocket,web_services,automate,embedded_ansible"
   tags:
     - v2v_content
     - manageiq_roles
