@@ -117,7 +117,7 @@ use three configuration based on the following example files.
 | manageiq_vm_disks_logs       | Disk on which ManageIQ logs are stored           |
 | manageiq_vm_root_password    | Root password of the VM (consider Ansible Vault) |
 
-[config/manageiq_vm.example.yml](../blob/master/config/ovirt_auth.example.yml)
+[config/ovirt_auth.example.yml](../blob/master/config/ovirt_auth.example.yml)
 
 | Variable           | Description                        |
 | ------------------ | ---------------------------------- |
@@ -125,7 +125,7 @@ use three configuration based on the following example files.
 | ovirt_api_username | Username to connect to oVirt API   |
 | ovirt_api_password | Password to connect to oVirt API   |
 
-[config/manageiq_vm.example.yml](../blob/master/config/rhel_custom_repos.example.yml)
+[config/rhel_custom_repos.example.yml](../blob/master/config/rhel_custom_repos.example.yml)
 There's only one variable `rhel_custom_repos`, so take a look at the example.
 
 
