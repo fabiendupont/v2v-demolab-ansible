@@ -3,45 +3,56 @@
   set_fact:
     postgresql_scl: "rh-postgresql{{ manageiq_postgresql_version | regex_replace('\\.', '') }}"
 
-- name: Create partition on database disk
-  command: "parted --script --align opt {{ manageiq_postgresql_disk }} mklabel msdos mkpart primary ext2 1 100% toggle 1 lvm"
-  args:
-    creates: "{{ manageiq_postgresql_disk }}1"
+- name: Check if database disk exists
+  stat:
+    path: "{{ manageiq_postgresql_disk }}"
+  register: database_disk_device
+  when: manageiq_postgresql_disk is defined
 
-- name: Check if VG exists
-  command: /sbin/lvm vgs {{ manageiq_postgresql_vg_name }}
-  ignore_errors: true
-  register: vg_exists
+- block:
+  - name: Create partition on database disk
+    command: "parted --script --align opt {{ manageiq_postgresql_disk }} mklabel msdos mkpart primary ext2 1 100% toggle 1 lvm"
+    args:
+      creates: "{{ manageiq_postgresql_disk }}1"
 
-- name: Create LVM VG for database
-  lvg:
-    vg: "{{ manageiq_postgresql_vg_name }}"
-    pvs: "{{ manageiq_postgresql_disk }}1"
-  when: vg_exists.failed
+  - name: Check if VG exists
+    command: /sbin/lvm vgs {{ manageiq_postgresql_vg_name }}
+    ignore_errors: true
+    register: vg_exists
 
-- name: Check if LV exists
-  command: /sbin/lvm lvs {{ manageiq_postgresql_vg_name }}/{{ manageiq_postgresql_lv_name }}
-  ignore_errors: true
-  register: lv_exists
+  - name: Create LVM VG for database
+    lvg:
+      vg: "{{ manageiq_postgresql_vg_name }}"
+      pvs: "{{ manageiq_postgresql_disk }}1"
+    when: vg_exists.failed
 
-- name: Create LVM LV for database
-  lvol:
-    vg: "{{ manageiq_postgresql_vg_name }}"
-    lv: "{{ manageiq_postgresql_lv_name }}"
-    size: 100%FREE
-  when: lv_exists.failed
+  - name: Check if LV exists
+    command: /sbin/lvm lvs {{ manageiq_postgresql_vg_name }}/{{ manageiq_postgresql_lv_name }}
+    ignore_errors: true
+    register: lv_exists
 
-- name: Create filesystem on LVM LV for database
-  filesystem:
-    fstype: xfs
-    dev: "/dev/mapper/{{ manageiq_postgresql_vg_name }}-{{ manageiq_postgresql_lv_name }}"
+  - name: Create LVM LV for database
+    lvol:
+      vg: "{{ manageiq_postgresql_vg_name }}"
+      lv: "{{ manageiq_postgresql_lv_name }}"
+      size: 100%FREE
+    when: lv_exists.failed
 
-- name: Mount database logical volume
-  mount:
-    name: "/var/opt/rh/{{ postgresql_scl }}/lib/pgsql"
-    src: "/dev/mapper/{{ manageiq_postgresql_vg_name }}-{{ manageiq_postgresql_lv_name }}"
-    fstype: xfs
-    state: mounted
+  - name: Create filesystem on LVM LV for database
+    filesystem:
+      fstype: xfs
+      dev: "/dev/mapper/{{ manageiq_postgresql_vg_name }}-{{ manageiq_postgresql_lv_name }}"
+
+  - name: Mount database logical volume
+    mount:
+      name: "/var/opt/rh/{{ postgresql_scl }}/lib/pgsql"
+      src: "/dev/mapper/{{ manageiq_postgresql_vg_name }}-{{ manageiq_postgresql_lv_name }}"
+      fstype: xfs
+      state: mounted
+
+  when:
+    - manageiq_postgresql_disk is defined
+    - database_disk_device.stat.exists
 
 - name: Install PostgreSQL packages
   yum:
@@ -88,6 +99,13 @@
     path: "/var/opt/rh/{{ postgresql_scl }}/lib/pgsql/data/postgresql.conf"
     regexp: '^#listen_addresses = .*$'
     replace: "listen_addresses = '0.0.0.0'"
+  notify: Restart postgresql service
+
+- name: Enable password access to PostgreSQL
+  lineinfile:
+    path: "/var/opt/rh/{{ postgresql_scl }}/lib/pgsql/data/pg_hba.conf"
+    line: "host    all    all    172.17.0.0/16    md5"
+    insertafter: '^# IPv4 local connections:$'
   notify: Restart postgresql service
 
 - name: Enable and start PostgreSQL service

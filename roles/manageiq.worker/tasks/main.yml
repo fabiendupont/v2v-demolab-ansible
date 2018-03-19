@@ -95,153 +95,92 @@
       chdir: "/home/miq/{{ item.name }}"
     with_items: "{{ manageiq_git_repos }}"
 
-  become: true
-  become_user: miq
+  - name: Add development repos to ManageIQ
+    copy:
+      dest: /home/miq/manageiq/bundler.d/Gemfile.dev.rb
+      owner: miq
+      group: miq
+      mode: 0644
+      content: |
+        override_gem 'manageiq-ui-classic', :path => File.expand_path('../../manageiq-ui-classic', __dir__)
+        gem 'miq_v2v_ui', :path => File.expand_path('../../miq_v2v_ui_plugin', __dir__)
 
-- name: Create partition on logs disk
-  command: "parted --script --align opt {{ manageiq_logs_disk }} mklabel msdos mkpart primary ext2 1 100% toggle 1 lvm"
-  args:
-    creates: "{{ manageiq_logs_disk }}1"
+  - name: Setup ManageIQ
+    command: scl enable {{ manageiq_ruby_scl }} 'bin/setup'
+    args:
+      chdir: /home/miq/manageiq
+    environment:
+      PATH: "/home/miq/manageiq/bin:{{ ansible_env.PATH }}"
+    async: 1000
+    poll: 0
+    register: manageiq_setup
 
-- name: Check if VG exists
-  command: /sbin/lvm vgs {{ manageiq_logs_vg_name }}
-  ignore_errors: true
-  register: vg_exists
+  - name: Wait for ManageIQ setup to finish
+    async_status:
+      jid: "{{ manageiq_setup.ansible_job_id }}"
+    register: manageiq_setup_status
+    until: manageiq_setup_status.finished
+    retries: 100
+    delay: 20
+    ignore_errors: yes
 
-- name: Create LVM VG for database
-  lvg:
-    vg: "{{ manageiq_logs_vg_name }}"
-    pvs: "{{ manageiq_logs_disk }}1"
-  when: vg_exists.failed
+  - name: Clean unused gems
+    command: scl enable {{ manageiq_ruby_scl }} 'bundle clean --force'
+    args:
+      chdir: /home/miq/manageiq
 
-- name: Check if LV exists
-  command: /sbin/lvm lvs {{ manageiq_logs_vg_name }}/{{ manageiq_logs_lv_name }}
-  ignore_errors: true
-  register: lv_exists
+  - name: Check if ManageIQ EVM process is running
+    shell: scl enable {{ manageiq_ruby_scl }} 'bundle exec rake evm:status | grep " default | EVM    | stopped "'
+    args:
+      chdir: /home/miq/manageiq
+    ignore_errors: true
+    register: evm_process_status
 
-- name: Create LVM LV for database
-  lvol:
-    vg: "{{ manageiq_logs_vg_name }}"
-    lv: "{{ manageiq_logs_lv_name }}"
-    size: 100%FREE
-  when: lv_exists.failed
+  - name: Check if ManageIQ EVM port is listening (3000/tcp)
+    wait_for:
+      port: 3000
+      delay: 5
+      timeout: 10
+    ignore_errors: true
+    register: evm_port_status
 
-- name: Create filesystem on LVM LV for logs
-  filesystem:
-    fstype: xfs
-    dev: "/dev/mapper/{{ manageiq_logs_vg_name }}-{{ manageiq_logs_lv_name }}"
+  - name: Start ManageIQ EVM
+    command: scl enable {{ manageiq_ruby_scl }} 'bundle exec bin/rake evm:start'
+    args:
+      chdir: /home/miq/manageiq
+    when:
+      - evm_process_status.rc != 0
+      - evm_port_status.failed
 
-- name: Mount logs logical volume
-  mount:
-    name: "/home/miq/manageiq/log"
-    src: "/dev/mapper/{{ manageiq_logs_vg_name }}-{{ manageiq_logs_lv_name }}"
-    fstype: xfs
-    state: mounted
+  - name: Wait for ManageIQ EVM service to be up
+    wait_for:
+      port: 3000
+      delay: 10
+      sleep: 10
+      timeout: 300
 
-- name: Set ownership of logs directory to miq
-  file:
-    path: /home/miq/manageiq/log
-    owner: miq
-    group: miq
-    recurse: true
+  - name: Check if ManageIQ UI port is listening (8080/tcp)
+    wait_for:
+      port: 8080
+      delay: 5
+      timeout: 10
+    ignore_errors: true
+    register: v2v_ui_port_status
 
-- block:
-    - name: Add development repos to ManageIQ
-      copy:
-        dest: /home/miq/manageiq/bundler.d/Gemfile.dev.rb
-        owner: miq
-        group: miq
-        mode: 0644
-        content: |
-          override_gem 'manageiq-ui-classic', :path => File.expand_path('../../manageiq-ui-classic', __dir__)
-          gem 'miq_v2v_ui', :path => File.expand_path('../../miq_v2v_ui_plugin', __dir__)
+  - name: Start ManageIQ UI
+    shell: cd /home/miq/manageiq-ui-classic && NODE_ENV=development nohup ./node_modules/.bin/webpack-dev-server --config config/webpack/development.js &
+    when:
+      - v2v_ui_port_status.failed
 
-    - name: Setup ManageIQ
-      command: scl enable {{ manageiq_ruby_scl }} 'bin/setup'
-      args:
-        chdir: /home/miq/manageiq
-      environment:
-        PATH: "/home/miq/manageiq/bin:{{ ansible_env.PATH }}"
-      async: 1000
-      poll: 0
-      register: manageiq_setup
-
-    - name: Wait for ManageIQ setup to finish
-      async_status:
-        jid: "{{ manageiq_setup.ansible_job_id }}"
-      register: manageiq_setup_status
-      until: manageiq_setup_status.finished
-      retries: 100
-      delay: 20
-      ignore_errors: yes
-
-    - name: Clean unused gems
-      command: scl enable {{ manageiq_ruby_scl }} 'bundle clean --force'
-      args:
-        chdir: /home/miq/manageiq
-
-    - name: Check if ManageIQ EVM process is running
-      shell: scl enable {{ manageiq_ruby_scl }} 'bundle exec rake evm:status | grep " default | EVM    | stopped "'
-      args:
-        chdir: /home/miq/manageiq
-      ignore_errors: true
-      register: evm_process_status
-
-    - name: Check if ManageIQ EVM port is listening (3000/tcp)
-      wait_for:
-        port: 3000
-        delay: 5
-        timeout: 10
-      ignore_errors: true
-      register: evm_port_status
-
-    - name: Start ManageIQ EVM
-      command: scl enable {{ manageiq_ruby_scl }} 'bundle exec bin/rake evm:start'
-      args:
-        chdir: /home/miq/manageiq
-      when:
-        - evm_process_status.rc != 0
-        - evm_port_status.failed
-
-    - name: Wait for ManageIQ EVM service to be up
-      wait_for:
-        port: 3000
-        delay: 10
-        sleep: 10
-        timeout: 300
-
-    - name: Check if ManageIQ UI port is listening (8080/tcp)
-      wait_for:
-        port: 8080
-        delay: 5
-        timeout: 10
-      ignore_errors: true
-      register: v2v_ui_port_status
-
-    - name: Start ManageIQ UI
-      shell: cd /home/miq/manageiq-ui-classic && NODE_ENV=development nohup ./node_modules/.bin/webpack-dev-server --config config/webpack/development.js &
-#      args:
-#        chdir: /home/miq/manageiq-ui-classic
-      when:
-        - v2v_ui_port_status.failed
-
-    - name: Wait for ManageIQ UI service to be up
-      wait_for:
-        port: 8080
-        delay: 10
-        sleep: 10
-        timeout: 300
+  - name: Wait for ManageIQ UI service to be up
+    wait_for:
+      port: 8080
+      delay: 10
+      sleep: 10
+      timeout: 300
 
   become: true
   become_user: miq
-
-#- name:
-#  copy:
-#    src: /usr/lib/systemd/system/evmserverd.service
-#    dest: /usr/lib/systemd/system/evmserverd.service
-#    owner: root
-#    group: root
-#    mode: 0644
 
 - name: Install httpd and mod_ssl packages
   yum:
