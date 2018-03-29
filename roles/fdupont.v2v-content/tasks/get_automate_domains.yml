@@ -1,0 +1,17 @@
+---
+- block:
+  - name: Get the list of automate domains
+    uri:
+      url: https://{{ inventory_hostname }}/api/automate_domains?expand=resources
+      user: admin
+      password: smartvm
+      method: GET
+      validate_certs: no
+    register: automate_domains_json
+
+  - name: Extracting the domain names from the JSON output
+    set_fact:
+      automate_domain_names: "{{ automate_domains_json.json | json_query('resources[*].name') }}"
+
+  delegate_to: localhost
+  connection: local  

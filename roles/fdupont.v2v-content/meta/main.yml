@@ -1,0 +1,22 @@
+galaxy_info:
+  author: Fabien Dupont
+  description: Principal Software Engineer
+  company: Red Hat
+
+  license: GPLv3
+
+  min_ansible_version: 1.2
+
+  platforms:
+  - name: Red Hat
+    versions:
+    - 7
+  - name: CentOS
+    versions:
+    - 7
+
+  galaxy_tags:
+  - v2v
+  - manageiq
+
+dependencies: []

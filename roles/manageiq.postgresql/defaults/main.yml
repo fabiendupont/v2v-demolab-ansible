@@ -1,5 +1,0 @@
----
-manageiq_postgresql_version: "9.5"
-manageiq_postgresql_vg_name: "vg_miq_pgsql"
-manageiq_postgresql_lv_name: "lv_data"
-manageiq_postgresql_db_password: "smartvm"

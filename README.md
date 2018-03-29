@@ -1,148 +1,129 @@
-# v2v-demolab-ansible
-V2V - Demo Lab setup - Ansible assets
+# V2V - Demo Lab setup - Ansible
+
+This repository provides a playbook, [deploy.yml](../blob/master/deploy.yml),
+that installs the V2V environment on top of an oVirt / RHV environment. It
+deploys a ManageIQ appliance using the latest nightly build, then it adds the
+providers, configures the conversion hosts and add the V2V assets to the
+ManageIQ appliance: appliance role, automate code, conversion hosts
+credentials.
+
+__Every action is done as root on the oVirt/RHV Manager machine.__
+
+## Installation
+
+This version lives in a specific branch of the repo, so we need to check this
+branch out:
+
+```
+$ git clone https://github.com/fdupont-redhat/v2v-demolab-ansible.git
+$ cd v2v-demolab-ansible
+$ git checkout deploy_from_rhvm
+```
+
+Currently, the playbook relies on features only available in unreleased version
+of oVirt.manageiq role, so we have install it from Github:
+
+
+```
+$ git clone https://github.com/oVirt/ovirt-ansible-manageiq.git roles/oVirt.manageiq
+```
+
+On the oVirt/RHV Manager, also ensure you have the
+`ovirt-ansible-v2v-conversion-host` package installed.
 
 ## Usage
 
-This repository provides two playbooks:
-
- * [manageiq_create_vm.yml](../blob/master/manageiq_create_vm.yml)
- * [manageiq_install.yml](../blob/master/manageiq_install.yml)
-
-The first one builds a virtual machine and runs the second playbook on it:
- * Create the virtual machine in oVirt/RHV,
- * Add it to the Ansible in-memory inventory,
- * Install git and ansible packages,
- * Clone the current git repository,
- * Generate the inventory on the virtual machine,
- * Launch the manageiq_install.yml playbook.
-
-The second one does the actual deployment and can be used autonomously:
- * Install the YUM repositories,
- * Install dependencies,
- * Configure the database and logs disks,
- * Clone the ManageIQ and Patrick Riley's repositories
- * Bootstrap the ManageIQ setup
- * Start ManageIQ
-
-If you want to build from scratch, run the `manageiq_create_vm.yml` playbook,
-passing your config file, preferably encrypted by ansible-vault:
+The following command line will launch the playbook:
 
 ```
-$ ansible-playbook manageiq_create_vm.yml \
-    -e @config/manageiq_vm.yml \
-    -e @config/ovirt_auth.yml \
-    --ask-vault-pass
+$ ansible-playbook deploy.yml -e @extra_vars.yml --ask-vault-pass
 ```
 
-If you already have a CentOS 7 or RHEL 7 VM, you can run `manageiq_install.yml`
-playbook from that VM, after setting the inventory.
+The `extra_vars.yml` is not provided as it is specific to your environment.
+A example file is provided
+[extra_vars.example.yml](../blob/deploy_from_rhvm/extra_vars.example.yml), so that you
+can see what variables are available. Copy it to `extra_vars.yml` and adapt it
+to your environment.
 
-```
-# ansible-playbook manageiq_install.yml
-```
+A example inventory is also provided:
+[inventory.example.yml](../blob/deploy_from_rhvm/inventory.example.yml). Copy it to
+`inventory.yml` and adapt it to your environment.
 
-## Prerequisites
+## Variables
 
-If you take a look at the playbooks, the main prerequisite is a virtual machine
-running CentOS 7 or RHEL 7. __Currently, only CentOS 7 has been tested__.
+__You will have to provide some passwords, so consider using file encrypted by
+ansible-vault to protect them.__
 
-To use the playbook that creates the VM, you will need a VM template in your
-oVirt / RHV4 environment. This template will have to support cloud-init. Here
-is a small how-to, based on a CentOS 7 minimal install.
+Most of the variables come from the
+[oVirt.manageiq](https://github.com/oVirt/ovirt-ansible-manageiq) role, so we
+advise that you also read its documentation for further customization.
 
-First, let's install some commonly used packages.
+The follwing variables allow to connect to the oVirt / RHV API.
 
-```
-# yum -y install vim-enhanced screen bash-completion yum-utils
-```
+| Variable        | Description                               |
+| --------------- | ----------------------------------------- |
+| engine_fqdn     | Hostname of the oVirt / RHV engine server |
+| engine_user     | Username of the oVirt / RHV engine server |
+| engine_password | Password of the oVirt / RHV engine server |
 
-Then, we install the oVirt agent for a better integration.
-```
-# yum -y install centos-release-ovirt42
-# yum -y install ovirt-guest-agent-common
-# systemctl enable --now ovirt-guest-agent.service
-```
+The following variables allow the creation of the virtual machine, as well as
+the configuration of the providers. By default, a oVirt / RHV provider is
+created for the platform on which ManageIQ is deployed. The
+`miq_extra_providers` allows to add more providers, such as the VMware source
+providers. See [extra_vars.example.yml](../blob/master/extra_vars.example.yml)
+for an example.
 
-Now, we install cloud-init.
-```
-# yum -y install cloud-init
-```
+| Variable              | Description                                                          |
+| --------------------- | -------------------------------------------------------------------- |
+| miq_qcow_url          | URL of the appliance to deploy (QCOW file)                           |
+| miq_vm_name           | Name of the VM                                                       |
+| miq_vm_root_password  | Root password of the VM                                              |
+| miq_vm_cluster        | Name of the oVirt / RHV cluster where to deploy the VM               |
+| miq_vm_memory_gb      | Amount of memory to allocate to the VM in GB                         |
+| miq_vm_cpus           | Number of vCPUs to allocate to the VM                                |
+| miq_vm_ip_address     | IP address of the VM                                                 |
+| miq_vm_netmask        | Netmask of the VM                                                    |
+| miq_vm_gateway        | Gateway of the VM                                                    |
+| miq_vm_dns_servers    | DNS servers                                                          |
+| miq_vm_dns_domain     | DNS domain                                                           |
+| miq_vm_cloud_init     | Cloud-init configuration to use (see oVirt.manageiq role)            |
+| miq_rhv_provider_name | Name of the provider configured for the current oVirt / RHV platform |
+| miq_extra_providers   | Additional providers to create during deployement                    |
+| miq_v2v_automate_ref  | Branch of the v2v-automate domain to use (default: master)           |
 
-Due to a race condition in dbus startup and cloud-init, all operations using
-hostnamectl as a backend fail. To workaround this, we move them to a later
-stage.
-```
-# sed -i \
-    -e "/set_hostname/d" \
-    -e "/update_hostname/d" \
-    -e "/^cloud_config_modules:/a \ - set_hostname\n - update_hostname" \
-    /etc/cloud/cloud.cfg
-```
+Virtual machine extra disks (e.g. database, log, tmp): a dict named
+`miq_vm_disks` allows to describe each of the extra disks (see example
+playbook). For each disk, the following attributes can be set:
 
-Finally, we _seal_ the VM and shut it down.
-```
-# yum clean all
-# rm -rf /var/cache/yum/
-# for i in /etc/sysconfig/network-scripts/ifcfg-eth* ; do
-    sed -i -e '/^UUID=/d' -e '/^ONBOOT=/s/=.*$/=yes/' ${i}
-done
-# rm -f /etc/ssh/ssh_host_*
-# echo > ~/.bash_history
-# history -c
-# halt -p
-```
+| Name      | Default value |  Description                                                         |
+|-----------|---------------|----------------------------------------------------------------------|
+| name      | UNDEF         | The name of the virtual machine disk. i                              |
+| size      | UNDEF         | The virtual machine disk size (`XXGiB`).                             |
+| interface | UNDEF         | The virtual machine disk interface type (`virtio` or `virtio_scsi`). |
+| format    | UNDEF         | The format of the virtual machine disk (`raw` or `cow`).             |
 
-## Configuration
+The following variables are used to configure the conversion host during the
+deployemnt.
 
-The `manageiq_create_vm.yml` allows a few variables to be passed. Some of them
-are passwords, so you may want to use vault files to store them. Personally, I
-use three configuration based on the following example files.
+| Variable              | Description                                    |
+| --------------------- | ---------------------------------------------- |
+| v2v_repo_rpms_name    | Name of the repository for V2V packages        |
+| v2v_repo_rpms_url     | URL of the repository for V2V packages         |
+| v2v_repo_srpms_name   | Name of the repository for V2V source packages |
+| v2v_repo_srpms_url    | URL of the repository for V2V source packages  |
+| v2v_vddk_package_name | Name of the VDDK archive                       |
+| v2v_vddk_package_url  | URL of the VDDK archive                        |
 
-[config/manageiq_vm.example.yml](../blob/master/config/manageiq_vm.example.yml)
+## Tags
 
-| Variable                     | Description                                      |
-| ---------------------------- | ------------------------------------------------ |
-| manageiq_vm_template         | Name of the template to use (cf. prereqs)        |
-| manageiq_vm_ovirt_cluster    | Name of the oVirt cluster where to deploy the VM |
-| manageiq_vm_name             | Name of the VM                                   |
-| manageiq_vm_cpus             | Number of vCPUs to allocate to the VM            |
-| manageiq_vm_memory_gb        | Amount of memory to allocate to the VM in GB     |
-| manageiq_vm_ip_address       | IP address of the VM                             |
-| manageiq_vm_netmask          | Netmask of the VM                                |
-| manageiq_vm_subnet_prefix    | Subnet prefix of the VM                          |
-| manageiq_vm_gateway          | Gateway of the VM                                |
-| manageiq_vm_dns_servers      | DNS servers                                      |
-| manageiq_vm_dns_domain       | DNS domain                                       |
-| manageiq_vm_disks_postgresql | Disk on which PostgreSQL stores its data         |
-| manageiq_vm_disks_logs       | Disk on which ManageIQ logs are stored           |
-| manageiq_vm_root_password    | Root password of the VM (consider Ansible Vault) |
+In order to allow people to run specific parts of the playbook, we have
+implemented tags. Here is a list of available tags:
 
-[config/ovirt_auth.example.yml](../blob/master/config/ovirt_auth.example.yml)
-
-| Variable           | Description                        |
-| ------------------ | ---------------------------------- |
-| ovirt_api_endpoint | Base URL of the oVirt API endpoint |
-| ovirt_api_username | Username to connect to oVirt API   |
-| ovirt_api_password | Password to connect to oVirt API   |
-
-[config/rhel_custom_repos.example.yml](../blob/master/config/rhel_custom_repos.example.yml)
-There's only one variable `rhel_custom_repos`, so take a look at the example.
-
-
-The playbook that creates the VM generates the inventory and sets default
-variables. However, it is possible to override these defaults, when running
-the `manageiq_install.yml` playbook on a virtual machine deployed separately.
-The `inventory.example.yml` file shows the options one can set.
-
-| Variable           | Description                                           |
-| ------------------ | ----------------------------------------------------- |
-| manageiq_postgresql_version | PostgreSQL version to use (default: 9.5)     |
-| manageiq_ruby_version       | Ruby version to use (default: 2.4)           |
-| manageiq_postgresql_disk    | Disk on which PostgreSQL stores its data     |
-| manageiq_postgresql_vg_name | Name of the volume group for PostgreSQL      |
-| manageiq_postgresql_lv_name | Name of the logical volume for PostgreSQL    |
-| manageiq_logs_disk          | Disk on which ManageIQ logs are stored       |
-| manageiq_logs_vg_name       | Name of the volume group for ManageIQ logs   |
-| manageiq_logs_lv_name       | Name of the logical volume for ManageIQ logs |
-
-Apart from the disks, you shouldn't have to set these options.
+| Tag              | Description                                                         |
+| ---------------- | ------------------------------------------------------------------- |
+| inventory        | Ensures that ManageIQ appliance is added to the in memory inventory |
+| conversion_host  | Configure conversion hosts                                          |
+| extra_providers  | Add providers to ManageIQ                                           |
+| manageiq_roles   | Activate required ManageIQ roles                                    |
+| automate_domains | Add the V2V automate domain                                         |
+| ssh_keys         | Deploys ManageIQ SSH key on RHV-M                                   |

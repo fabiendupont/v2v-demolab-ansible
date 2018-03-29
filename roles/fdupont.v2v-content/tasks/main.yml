@@ -1,0 +1,56 @@
+---
+- include_tasks: add_extra_providers.yml
+  with_items:
+    -  "{{ miq_extra_providers }}"
+  tags:
+    - extra_providers
+
+- include_tasks: get_manageiq_roles.yml
+  tags:
+    - manageiq_roles
+
+- name: Activate Notifier and Git Owner roles
+  uri:
+    url: https://{{ inventory_hostname }}/api/servers/1/settings
+    user: admin
+    password: smartvm
+    method: PATCH
+    validate_certs: no
+    body_format: json
+    body:
+      server:
+        role: "{{ manageiq_roles }},{{ item }}"
+  when: "item not in manageiq_roles.split(',')"
+  with_items:
+    - 'git_owner'
+    - 'notifier'
+  delegate_to: localhost
+  connection: local  
+  tags:
+    - manageiq_roles
+
+- include_tasks: get_manageiq_roles.yml
+  tags:
+    manageiq_roles
+
+- include_tasks: get_automate_domains.yml
+  tags:
+    - automate_domains
+
+- name: Import V2V automation domain
+  command: bundle exec rake evm:automate:import GIT_URL=https://github.com/fdupont-redhat/v2v-automate.git PREVIEW=false ENABLED=true
+  args:
+    chdir: /var/www/miq/vmdb
+  when: "'V2V' not in automate_domain_names"
+  tags:
+    - automate_domains
+
+- include_tasks: set_rhvm_ssh_keys.yml
+  tags:
+    - ssh_key
+
+- include_tasks: configure_conversion_host.yml
+  with_items:
+    - "{{ groups['conversion_hosts'] }}"
+  tags:
+    - conversion_host

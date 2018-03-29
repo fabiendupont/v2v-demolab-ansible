@@ -1,0 +1,45 @@
+---
+engine_fqdn: rhvm.example.com
+engine_user: admin@internal
+engine_password: secret
+miq_qcow_url: http://releases.manageiq.org/manageiq-ovirt-devel.qc2
+miq_vm_name: miq-v2v
+miq_vm_root_password: secret
+miq_vm_cluster: MyCluster
+miq_vm_memory: 16GiB
+miq_vm_cpu: 4
+miq_vm_ip_address: 192.168.122.17
+miq_vm_netmask: 255.255.255.0
+miq_vm_gateway: 192.168.122.1
+miq_vm_dns_servers: 192.168.122.1
+miq_vm_dns_domain: example.com
+miq_vm_cloud_init:
+  user_name: root
+  root_password: "{{ miq_vm_root_password }}"
+  host_name: "{{ miq_vm_name }}.{{ miq_vm_dns_domain }}"
+  nic_name: eth0
+  nic_on_boot: True
+  nic_boot_protocol: static
+  nic_ip_address: "{{ miq_vm_ip_address }}"
+  nic_netmask: "{{ miq_vm_netmask }}"
+  nic_gateway: "{{ miq_vm_gateway }}"
+  dns_servers: "{{ miq_vm_dns_servers }}"
+  dns_search: "{{ miq_vm_dns_domain }}"
+  custom_script: |
+    run_cmd:
+      - echo 'net.ipv6.conf.all.disable_ipv6 = 1' > /etc/sysctl.d/ipv6.conf
+      - sysctl -p /etc/sysctl.d/ipv6.conf
+      - sed -i '/#ListenAddress ::/a ListenAddress {{ miq_vm_ip_address }}' /etc/ssh/sshd_config
+      - systemctl restart sshd.service
+      - sed -i '/inet_protocols = /s/= .*$/= ipv4/' /etc/postfix/main.cf
+      - systemctl restart postfix.service
+miq_rhv_provider_name: V2V RHV4
+miq_extra_providers:
+  - name: V2V VMware
+    type: ManageIQ::Providers::Vmware::InfraManager
+    hostname: vcenter.example.com
+    zone:
+      href: http://localhost:3000/api/zone/1
+    credentials:
+      userid: administrator@vsphere.local
+      password: secret

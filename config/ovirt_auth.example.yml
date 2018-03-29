@@ -1,4 +1,0 @@
----
-ovirt_api_endpoint: "https://ovirt.example.com/ovirt-engine/api"
-ovirt_api_username: "admin@internal"
-ovirt_api_password: "secret"

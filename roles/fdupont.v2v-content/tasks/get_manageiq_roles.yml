@@ -1,0 +1,21 @@
+---
+- block:
+  - name: Get the list of currently enabled roles
+    uri:
+      url: https://{{ inventory_hostname }}/api/servers/1/settings
+      user: admin
+      password: smartvm
+      method: GET
+      validate_certs: no
+    register: manageiq_roles_json
+    tags:
+      - roles
+
+  - name: Extracting the roles from the JSON output
+    set_fact:
+      manageiq_roles: "{{ manageiq_roles_json.json.server.role }}"
+    tags:
+      - roles
+
+  delegate_to: localhost
+  connection: local  
