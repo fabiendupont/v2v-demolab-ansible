@@ -38,7 +38,7 @@
     - automate_domains
 
 - name: Import V2V automation domain
-  command: bundle exec rake evm:automate:import GIT_URL=https://github.com/fdupont-redhat/v2v-automate.git PREVIEW=false ENABLED=true
+  command: bundle exec rake evm:automate:import GIT_URL=https://github.com/fdupont-redhat/v2v-automate.git PREVIEW=false ENABLED=true REF={{ miq_v2v_automate_ref }}
   args:
     chdir: /var/www/miq/vmdb
   when: "'V2V' not in automate_domain_names"
