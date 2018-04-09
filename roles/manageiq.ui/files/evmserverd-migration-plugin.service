@@ -1,0 +1,11 @@
+[Unit]
+Description=EVM Migration Plugin
+After=syslog.target httpd.service evmserverd.service
+
+[Service]
+ExecStart=/bin/evmserver-migration-plugin.sh
+Type=oneshot
+
+[Install]
+WantedBy=multi-user.target
+
