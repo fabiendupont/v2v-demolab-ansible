@@ -43,3 +43,4 @@ miq_extra_providers:
     credentials:
       userid: administrator@vsphere.local
       password: secret
+miq_v2v_automate_ref: extended_reporting_and_rhv_upload
