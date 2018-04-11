@@ -32,6 +32,6 @@
     create: yes
     block: |
       Host {{ engine_fqdn }}
-      User root
-      IdentityFile /root/.ssh/rhvm-id_rsa
-      IdentitiesOnly yes
+        User root
+        IdentityFile /root/.ssh/rhvm-id_rsa
+        IdentitiesOnly yes
