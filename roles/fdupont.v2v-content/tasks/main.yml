@@ -12,8 +12,8 @@
 - name: Activate Notifier and Git Owner roles
   uri:
     url: https://{{ inventory_hostname }}/api/servers/1/settings
-    user: admin
-    password: smartvm
+    user: "{{ miq_app_username | default('admin') }}"
+    password: "{{ miq_app_password | default('smartvm') }}"
     method: PATCH
     validate_certs: no
     body_format: json
@@ -25,13 +25,9 @@
     - 'git_owner'
     - 'notifier'
   delegate_to: localhost
-  connection: local  
+  connection: local
   tags:
     - manageiq_roles
-
-- include_tasks: get_manageiq_roles.yml
-  tags:
-    manageiq_roles
 
 - include_tasks: get_automate_domains.yml
   tags:
@@ -54,3 +50,10 @@
     - "{{ groups['conversion_hosts'] }}"
   tags:
     - conversion_host
+
+- name: Ensure migration menu is present
+  lineinfile:
+    path: /var/www/miq/vmdb/config/permissions.yml
+    line: "- :migration"
+  notify:
+    - Restart evmserverd service

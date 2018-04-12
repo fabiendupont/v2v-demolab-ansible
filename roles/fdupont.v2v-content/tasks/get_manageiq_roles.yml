@@ -3,8 +3,8 @@
   - name: Get the list of currently enabled roles
     uri:
       url: https://{{ inventory_hostname }}/api/servers/1/settings
-      user: admin
-      password: smartvm
+      user: "{{ miq_app_username | default('admin') }}"
+      password: "{{ miq_app_password | default('smartvm') }}"
       method: GET
       validate_certs: no
     register: manageiq_roles_json
@@ -18,4 +18,4 @@
       - roles
 
   delegate_to: localhost
-  connection: local  
+  connection: local

@@ -2,8 +2,8 @@
 - name: Get list of existing providers
   uri:
     url: "https://{{ inventory_hostname }}/api/providers/?filter[]=name={{ item.name | regex_replace(' ', '%20') }}"
-    user: admin
-    password: smartvm
+    user: "{{ miq_app_username }}"
+    password: "{{ miq_app_password }}"
     method: GET
     validate_certs: no
   delegate_to: localhost
@@ -13,8 +13,8 @@
 - name: Add extra providers
   uri:
     url: https://{{ inventory_hostname }}/api/providers
-    user: admin
-    password: smartvm
+    user: "{{ miq_app_username }}"
+    password: "{{ miq_app_password }}"
     method: POST
     validate_certs: no
     body_format: json

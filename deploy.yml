@@ -61,9 +61,6 @@
   gather_facts: no
   vars:
     ansible_ssh_common_args: -o PubkeyAuthentication=no -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
-  pre_tasks:
-    - debug:
-        var: inventory_hostname
   roles:
     - fdupont.v2v-content
 
