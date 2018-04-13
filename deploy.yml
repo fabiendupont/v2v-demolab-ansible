@@ -20,28 +20,10 @@
   connection: local
   gather_facts: no
   tasks:
-    - block:
-      - name: Check if the RPM is installed
-        command: rpm -q ovirt-ansible-v2v-conversion-host
-        ignore_errors: yes
-        register: check_conversion_host_role_rpm
-
-      - name: Try to install with YUM
-        yum:
-          name: ovirt-ansible-v2v-conversion-host
-          state: latest
-        when: check_conversion_host_role_rpm.rc != 0
-        ignore_errors: yes
-        register: conversion_host_role_yum
-
-      - name: Install from Git repository
-        command: ansible-galaxy install --roles-path roles oVirt.ovirt-ansible-v2v-conversion-host
-        args:
-          creates: roles/oVirt.ovirt-ansible-v2v-conversion-host
-        when:
-          - check_conversion_host_role_rpm.rc != 0
-          - conversion_host_role_yum.rc != 0
-
+    - name: Ensure ovirt-ansible-v2v-conversion-host is installed
+      yum:
+        name: ovirt-ansible-v2v-conversion-host
+        state: latest
       tags:
         - conversion_host
 
@@ -49,7 +31,7 @@
   hosts: conversion_hosts
   tasks:
     - include_role:
-        name: oVirt.ovirt-ansible-v2v-conversion-host
+        name: oVirt.v2v-conversion-host
       vars:
         role_action: install
         v2v_vddk_override: true
