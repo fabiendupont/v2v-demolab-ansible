@@ -1,4 +1,9 @@
 ---
+- name: Fetch info about appliance
+  command: "rpm -qi cfme"
+  register: cfme_rpm
+  ignore_errors: yes
+
 - include_tasks: add_extra_providers.yml
   with_items:
     -  "{{ miq_extra_providers }}"
@@ -66,3 +71,4 @@
     line: "- :migration"
   notify:
     - Restart evmserverd service
+  when: "cfme_rpm.rc == 0"
