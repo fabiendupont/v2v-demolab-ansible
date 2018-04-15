@@ -10,39 +10,6 @@
   tags:
     - extra_providers
 
-#- include_tasks: get_manageiq_roles.yml
-#  tags:
-#    - manageiq_roles
-
-#- name: Add Notifier, Git Owner and Metrics roles to list of active roles
-#  set_fact:
-#    manageiq_roles: "{{ manageiq_roles }},{{ item }}"
-#  when: "item not in manageiq_roles.split(',')"
-#  with_items:
-#    - 'git_owner'
-#    - 'notifier'
-#    - "ems_metrics_coordinator"
-#    - "ems_metrics_collector"
-#    - "ems_metrics_processor"
-#  tags:
-#    - manageiq_roles
-
-#- name: Update list of active roles
-#  uri:
-#    url: https://{{ inventory_hostname }}/api/servers/1/settings
-#    user: "{{ miq_app_username | default('admin') }}"
-#    password: "{{ miq_app_password | default('smartvm') }}"
-#    method: PATCH
-#    validate_certs: no
-#    body_format: json
-#    body:
-#      server:
-#        role: "{{ manageiq_roles }}"
-#  delegate_to: localhost
-#  connection: local
-#  tags:
-#    - manageiq_roles
-
 - include_tasks: get_automate_domains.yml
   tags:
     - automate_domains
