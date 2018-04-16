@@ -5,6 +5,7 @@
     state: restarted
 
 - name: Import custom button for v2v conversion host
-  command: bin/rails r /opt/v2v/scripts/custom_button_import.rb /opt/v2v/assets/custom_buttons/v2v-conversion-hosts.yml
+  command: bin/rails r /opt/v2v/scripts/custom_button_import.rb /opt/v2v/assets/custom_buttons/v2v-conversion-host.yml
   args:
     chdir: /var/www/miq/vmdb
+  ignore_errors: yes
