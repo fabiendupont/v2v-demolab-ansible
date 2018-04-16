@@ -11,16 +11,15 @@
     - "/assets"
     - "/scripts"
 
-- name: Download the custom buttons import script
+- name: Copy the custom buttons import script
   copy:
     src: scripts/custom_button_import.rb
     dest: /opt/v2v/scripts/custom_button_import.rb
     owner: root
     group: root
     mode: 0400
-  notify: Run the custom buttons import script
 
-- name: Download the custom buttons asset file
+- name: Copy the custom buttons asset file
   copy:
     src: assets/custom_buttons/v2v-conversion-hosts.yml
     dest: /opt/v2v/assets/custom_buttons/v2v-conversion-hosts.yml
