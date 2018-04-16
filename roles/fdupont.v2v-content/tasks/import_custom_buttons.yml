@@ -9,6 +9,7 @@
   with_items:
     - ""
     - "/assets"
+    - "/assets/custom_buttons"
     - "/scripts"
 
 - name: Copy the custom buttons import script
