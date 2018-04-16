@@ -22,6 +22,10 @@
   tags:
     - automate_domains
 
+- include_tasks: import_custom_buttons.yml
+  tags:
+    - custom_buttons
+
 - include_tasks: set_rhvm_ssh_keys.yml
   tags:
     - ssh_key
