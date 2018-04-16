@@ -1,5 +1,5 @@
 class ImportArInstances
-  DEBUG_MODE = false
+  DEBUG_MODE = true
 
   def self.import(obj_hash)
     new.import(obj_hash)
@@ -51,10 +51,4 @@ class ImportArInstances
   end
 end
 
-if ARGV.length != 1
-  puts "No filename passed as argument."
-  raise
-end
-
-custom_button_exports = File.open(ARGV[0], 'r') { |f| f.read }
-ImportArInstances.import(YAML.safe_load(custom_button_export, [Symbol]))
+ImportArInstances.import(YAML.load_file(ARGV[0]))
