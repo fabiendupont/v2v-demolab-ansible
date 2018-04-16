@@ -1,5 +1,5 @@
 class ImportArInstances
-  DEBUG_MODE = true
+  DEBUG_MODE = false
 
   def self.import(obj_hash)
     new.import(obj_hash)
