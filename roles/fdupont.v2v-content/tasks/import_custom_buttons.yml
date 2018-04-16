@@ -1,18 +1,21 @@
 ---
 - name: Download the custom buttons import script
-  get_url:
-    url: https://gist.githubusercontent.com/gmcculloug/67f696abd19acf9fe48cbc630d5d3a3f/raw/3e49148a94eb0c2d3b3b03bd2f8514fd32287e73/v2v_custom_button_import.rb
-    dest: /tmp/v2v_custom_button_import.rb
+  copy:
+    src: scripts/custom_button_import.rb
+    dest: /opt/v2v/scripts/custom_button_import.rb
     owner: root
     group: root
     mode: 0400
+  notify: Run the custom buttons import script
+
+- name: Download the custom buttons asset file
+  copy:
+    src: assets/custom_buttons/v2v-conversion-hosts.yml
+    dest: /opt/v2v/assets/custom_buttons/v2v-conversion-hosts.yml
+  notify: Import custom button for v2v conversion host
 
 - name: Run the custom buttons import script
-  command: bin/rails r /tmp/v2v_custom_button_import.rb
+  command: bin/rails r /opt/v2v/scripts/custom_button_import.rb /opt/v2v/assets/custom_buttons/v2v-conversion-hosts.yml
   args:
     chdir: /var/www/miq/vmdb
-
-- name: Delete the custom buttons import script
-  file:
-    path: /tmp/v2v_custom_button_import.rb
-    state: absent
+  ignore_errors: yes

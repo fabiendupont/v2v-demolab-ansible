@@ -1,0 +1,155 @@
+---
+custom_button_set:
+- attributes:
+    name: Conversion Host|Host|
+    description: V2V Conversion Host Role
+    set_type: CustomButtonSet
+    guid: 52f7d57e-2cc7-4eae-94cd-4502b86bf631
+    read_only:
+    set_data:
+      :button_order:
+      - 43
+      - 44
+      - 45
+      :button_icon: pficon pficon-service
+      :display: true
+      :applies_to_class: Host
+      :group_index: 1
+    mode:
+    owner_type:
+    owner_id:
+    userid:
+    group_id:
+  has_many:
+    custom_button:
+    - attributes:
+        guid: 23f13011-8713-47ac-8687-6d22e23c794c
+        description: Role Check
+        applies_to_class: Host
+        visibility_expression: !ruby/object:MiqExpression
+          exp:
+            "=":
+              field: Host-vmm_vendor
+              value: redhat
+          context_type:
+        options:
+          :button_icon: fa fa-question
+          :button_type: default
+          :display: true
+          :open_url: false
+          :display_for: single
+          :submit_how: one
+        userid: admin
+        wait_for_complete:
+        name: Check Role
+        visibility:
+          :roles:
+          - _ALL_
+        applies_to_id:
+        enablement_expression:
+        disabled_text:
+      has_one:
+        resource_action:
+        - attributes:
+            action:
+            dialog_id:
+            resource_id: 43
+            resource_type: CustomButton
+            ae_namespace: SYSTEM
+            ae_class: PROCESS
+            ae_instance: Request
+            ae_message:
+            ae_attributes:
+              request: Transformation_TransformationHostRole_Check
+            configuration_template_id:
+            configuration_template_type:
+    - attributes:
+        guid: a0fbc90a-151a-4d81-98a4-bb91215c60cd
+        description: Disable conversion host role
+        applies_to_class: Host
+        visibility_expression: !ruby/object:MiqExpression
+          exp:
+            and:
+            - "=":
+                field: Host-vmm_vendor
+                value: redhat
+            - CONTAINS:
+                tag: Host.persistent_volume.managed-v2v_transformation_host
+                value: 'true'
+          context_type:
+        options:
+          :button_icon: fa fa-times-circle-o
+          :button_type: default
+          :display: true
+          :open_url: false
+          :display_for: single
+          :submit_how: one
+        userid: admin
+        wait_for_complete:
+        name: Disable Role
+        visibility:
+          :roles:
+          - _ALL_
+        applies_to_id:
+        enablement_expression:
+        disabled_text:
+      has_one:
+        resource_action:
+        - attributes:
+            action:
+            dialog_id:
+            resource_id: 44
+            resource_type: CustomButton
+            ae_namespace: SYSTEM
+            ae_class: PROCESS
+            ae_instance: Request
+            ae_message:
+            ae_attributes:
+              request: Transformation_TransformationHostRole_Disable
+            configuration_template_id:
+            configuration_template_type:
+    - attributes:
+        guid: b4a36626-65eb-4998-8fb9-8577c390f20e
+        description: Enable conversion host role
+        applies_to_class: Host
+        visibility_expression: !ruby/object:MiqExpression
+          exp:
+            and:
+            - "=":
+                field: Host-vmm_vendor
+                value: redhat
+            - CONTAINS:
+                tag: Host.persistent_volume.managed-v2v_transformation_host
+                value: 'false'
+          context_type:
+        options:
+          :button_icon: fa fa-check-circle-o
+          :button_type: default
+          :display: true
+          :open_url: false
+          :display_for: single
+          :submit_how: one
+        userid: admin
+        wait_for_complete:
+        name: Enable Role
+        visibility:
+          :roles:
+          - _ALL_
+        applies_to_id:
+        enablement_expression:
+        disabled_text:
+      has_one:
+        resource_action:
+        - attributes:
+            action:
+            dialog_id:
+            resource_id: 45
+            resource_type: CustomButton
+            ae_namespace: SYSTEM
+            ae_class: PROCESS
+            ae_instance: Request
+            ae_message:
+            ae_attributes:
+              request: Transformation_TransformationHostRole_Enable
+            configuration_template_id:
+            configuration_template_type:
