@@ -1,0 +1,18 @@
+---
+- name: Download the custom buttons import script
+  get_url:
+    url: https://gist.githubusercontent.com/gmcculloug/67f696abd19acf9fe48cbc630d5d3a3f/raw/3e49148a94eb0c2d3b3b03bd2f8514fd32287e73/v2v_custom_button_import.rb
+    dest: /tmp/v2v_custom_button_import.rb
+    owner: root
+    group: root
+    mode: 0400
+
+- name: Run the custom buttons import script
+  command: bin/rails r /tmp/v2v_custom_button_import.rb
+  args:
+    chdir: /var/www/miq/vmdb
+
+- name: Delete the custom buttons import script
+  file:
+    path: /tmp/v2v_custom_button_import.rb
+    state: absent
