@@ -2,12 +2,10 @@
 engine_fqdn: rhvm.example.com
 engine_user: admin@internal
 engine_password: secret
-miq_qcow_url: http://releases.manageiq.org/manageiq-ovirt-devel.qc2
+miq_qcow_url: http://releases.manageiq.org/manageiq-ovirt-devel.qc2<Paste>
 miq_vm_name: miq-v2v
 miq_vm_root_password: secret
 miq_vm_cluster: MyCluster
-miq_vm_memory: 16GiB
-miq_vm_cpu: 4
 miq_vm_ip_address: 192.168.122.17
 miq_vm_netmask: 255.255.255.0
 miq_vm_gateway: 192.168.122.1
@@ -33,6 +31,16 @@ miq_vm_cloud_init:
       - systemctl restart sshd.service
       - sed -i '/inet_protocols = /s/= .*$/= ipv4/' /etc/postfix/main.cf
       - systemctl restart postfix.service
+miq_vm_disk_storage: V2V-Datastore
+miq_vm_disks:
+  database:
+    name: "{{ miq_vm_name }}_Disk2"
+    size: 10GiB
+    interface: virtio
+    format: raw
+miq_enabled_roles:
+  - git_owner
+  - notifier
 miq_rhv_provider_name: V2V RHV4
 miq_extra_providers:
   - name: V2V VMware
