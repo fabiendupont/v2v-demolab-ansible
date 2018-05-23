@@ -39,7 +39,7 @@
         - conversion_host
 
 - name: Install V2V content
-  hosts: "{{ miq_vm_name }}.{{ miq_vm_dns_domain }}"
+  hosts: "{{ miq_vm_ip_address }}"
   gather_facts: no
   vars:
     ansible_ssh_common_args: -o PubkeyAuthentication=no -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
