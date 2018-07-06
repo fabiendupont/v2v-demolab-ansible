@@ -2,7 +2,7 @@
 engine_fqdn: rhvm.example.com
 engine_user: admin@internal
 engine_password: secret
-miq_qcow_url: http://releases.manageiq.org/manageiq-ovirt-devel.qc2<Paste>
+miq_qcow_url: http://releases.manageiq.org/manageiq-ovirt-devel.qc2
 miq_vm_name: miq-v2v
 miq_vm_root_password: secret
 miq_vm_cluster: MyCluster
