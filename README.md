@@ -1,9 +1,7 @@
 # V2V - Demo Lab setup - Ansible
-<<<<<<< HEAD
 =======
 
 ## Usage
->>>>>>> Update README title
 
 This repository provides a playbook, [deploy.yml](../blob/master/deploy.yml),
 that installs the V2V environment on top of an oVirt / RHV environment. It
