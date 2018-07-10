@@ -1,46 +1,17 @@
 all:
   children:
-    ManageIQ:
-      #vars:
-        # If you want to change the PostgreSQL or Ruby versions
-        #manageiq_postgresql_version: 9.5
-        #manageiq_ruby_version: 2.4
-      children:
-        database:
-          hosts:
-            miq.example.com:
-              # Specify the disk to use for database storage (mandatory)
-              manageiq_postgresql_disk: /dev/sdb
-              # If you want to change the default LVM naming (optional)
-              #manageiq_postgresql_vg_name: miq_pgsql_vg
-              #manageiq_postgresql_lv_name: data_lv
-        ui:
-          hosts:
-            miq.example.com:
-        worker:
-          hosts:
-            miq.example.com:
-              # Specify the disk to use for logs storage
-              manageiq_logs_disk: /dev/sdb
-              # If you want to change the default LVM naming (optional)
-              #manageiq_logs_vg_name: miq_logs_vg
-              #manageiq_logs_lv_name: data_lv
-  hosts:
-    miq.example.com:
-      # An example to set Ansible credentials on per host basis
-      #ansible_user: root
-      #ansible_ssh_password: secret
+    conversion_hosts:
+      hosts:
+        rhelh01.example.com:
+          root_password: "secret"
+        rhelh02.example.com:
+          root_password: "secret"
+      vars:
+        ansible_ssh_private_key_file: /etc/pki/ovirt-engine/keys/engine_id_rsa
+        v2v_repo_rpms_name: "v2v-nbdkit-rpms"
+        v2v_repo_rpms_url: "http://files.example.com/rpms/v2v-nbdkit-rpms"
+        v2v_repo_srpms_name: "v2v-nbdkit-src-rpms"
+        v2v_repo_srpms_url: "http://files.example.com/rpms/v2v-nbdkit-src-rpms"
+        v2v_vddk_package_name: "VMware-vix-disklib-6.5.2-6195444.x86_64.tar.gz"
+        v2v_vddk_package_url: "http://files.example.com/vddk/VMware-vix-disklib-6.5.2-6195444.x86_64.tar.gz"
 
-      # If you want to configure Subscription Manager on a RHEL system,
-      # you can set the following variables:
-      #manageiq_rhn_username: myuser
-      #manageiq_rhn_password: secret
-      #manageiq_rhn_pool: 0123456789abcdef0123456789abcdef
-
-      # If you have your own repositories you can also set them by populating
-      # the rhel_custom_repos variable, as an array of hashes:
-      #rhel_custom_repos:
-      #  - name: rhel-7-server-rpms
-      #    baseurl: http://data.example.com/repos/rhel-7-server-rpms
-      #  - name: rhel-server-rhscl-7-rpms
-      #    baseurl: http://data.example.com/repos/rhel-server-rhscl-7-rpms

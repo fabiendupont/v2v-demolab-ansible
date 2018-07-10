@@ -1,0 +1,37 @@
+---
+- name: Ensure /root/.ssh directory exists
+  file:
+    path: /root/.ssh
+    state: directory
+    owner: root
+    group: root
+    mode: 0700
+    setype: ssh_home_t
+
+- name: Create a SSH key pair
+  command: ssh-keygen -t rsa -b 2048 -f /root/.ssh/rhvm-id_rsa -N ''
+  args:
+    creates: /root/.ssh/rhvm-id_rsa
+
+- name: Collect the SSH public key
+  slurp:
+    src: /root/.ssh/rhvm-id_rsa.pub
+  register: rhvm_pub_key
+
+- name: Add the public keys to RHV-M authorized keys
+  authorized_key:
+    user: root
+    state: present
+    key: "{{ rhvm_pub_key['content'] | b64decode }}"
+  delegate_to: localhost
+  connection: local
+
+- name: Add the SSH config for RHV-M
+  blockinfile:
+    path: /root/.ssh/config
+    create: yes
+    block: |
+      Host {{ engine_fqdn }}
+        User root
+        IdentityFile /root/.ssh/rhvm-id_rsa
+        IdentitiesOnly yes

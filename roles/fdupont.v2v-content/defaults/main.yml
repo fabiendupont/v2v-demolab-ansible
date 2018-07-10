@@ -1,0 +1,7 @@
+---
+manageiq_ruby_version: "2.4"
+manageiq_ruby_scl: "rh-ruby24"
+miq_vm_root_password: smartvm
+miq_app_username: admin
+miq_app_password: smartvm
+miq_v2v_automate_ref: master

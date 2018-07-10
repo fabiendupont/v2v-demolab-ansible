@@ -1,0 +1,45 @@
+---
+- name: Fetch info about appliance
+  command: "rpm -qi cfme"
+  register: cfme_rpm
+  ignore_errors: yes
+
+- include_tasks: add_extra_providers.yml
+  with_items:
+    -  "{{ miq_extra_providers }}"
+  tags:
+    - extra_providers
+
+- include_tasks: get_automate_domains.yml
+  tags:
+    - automate_domains
+
+- name: Import V2V automation domain
+  command: bundle exec rake evm:automate:import GIT_URL=https://github.com/fdupont-redhat/v2v-automate.git PREVIEW=false ENABLED=true REF={{ miq_v2v_automate_ref }}
+  args:
+    chdir: /var/www/miq/vmdb
+  when: "'V2V' not in automate_domain_names"
+  tags:
+    - automate_domains
+
+- include_tasks: import_custom_buttons.yml
+  tags:
+    - custom_buttons
+
+- include_tasks: set_rhvm_ssh_keys.yml
+  tags:
+    - ssh_key
+
+- include_tasks: configure_conversion_host.yml
+  with_items:
+    - "{{ groups['conversion_hosts'] }}"
+  tags:
+    - conversion_host
+
+- name: Ensure migration menu is present
+  lineinfile:
+    path: /var/www/miq/vmdb/config/permissions.yml
+    line: "- :migration"
+  notify:
+    - Restart evmserverd service
+  when: "cfme_rpm.rc == 0"

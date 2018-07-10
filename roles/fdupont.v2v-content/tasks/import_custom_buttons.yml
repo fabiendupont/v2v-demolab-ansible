@@ -1,0 +1,27 @@
+---
+- name: Ensure the v2v content directory exists
+  file:
+    path: /opt/v2v{{item}}
+    state: directory
+    owner: root
+    group: root
+    mode: 0700
+  with_items:
+    - ""
+    - "/assets"
+    - "/assets/custom_buttons"
+    - "/scripts"
+
+- name: Copy the custom buttons import script
+  copy:
+    src: scripts/custom_button_import.rb
+    dest: /opt/v2v/scripts/custom_button_import.rb
+    owner: root
+    group: root
+    mode: 0400
+
+- name: Copy the custom buttons asset file
+  copy:
+    src: assets/custom_buttons/v2v-conversion-host.yml
+    dest: /opt/v2v/assets/custom_buttons/v2v-conversion-host.yml
+  notify: Import custom button for v2v conversion host

@@ -1,0 +1,48 @@
+---
+- name: Deploy the ManageIQ daily appliance
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  roles:
+    - oVirt.manageiq
+  post_tasks:
+    - name: Add host to in memory inventory
+      add_host:
+        name: "{{ miq_vm_name }}.{{ miq_vm_dns_domain }}"
+        ansible_user: root
+        ansible_ssh_pass: "{{ miq_vm_root_password }}"
+        ansible_pipelining: true
+      tags:
+        - inventory
+
+- name: Install the conversion host role
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  tasks:
+    - name: Ensure ovirt-ansible-v2v-conversion-host is installed
+      yum:
+        name: ovirt-ansible-v2v-conversion-host
+        state: latest
+      tags:
+        - conversion_host
+
+- name: Configure conversion hosts
+  hosts: conversion_hosts
+  tasks:
+    - include_role:
+        name: oVirt.v2v-conversion-host
+      vars:
+        role_action: install
+        v2v_vddk_override: true
+      tags:
+        - conversion_host
+
+- name: Install V2V content
+  hosts: "{{ miq_vm_ip_address }}"
+  gather_facts: no
+  vars:
+    ansible_ssh_common_args: -o PubkeyAuthentication=no -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
+  roles:
+    - fdupont.v2v-content
+
